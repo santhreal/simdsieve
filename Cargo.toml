@@ -7,12 +7,12 @@ description = "SIMD-accelerated byte pattern pre-filtering with AVX-512, AVX2, N
 license = "MIT"
 authors = ["Corum Collective LLC <contact@santh.io>"]
 repository = "https://github.com/santhsecurity/simdsieve"
-homepage = "https://github.com/santht/simdsieve"
+homepage = "https://github.com/santhsecurity/simdsieve"
 documentation = "https://docs.rs/simdsieve"
 readme = "README.md"
 keywords = ["simd", "avx2", "avx512", "neon", "pattern-matching", "prefilter"]
 categories = ["algorithms", "text-processing"]
-include = ["src/**", "benches/**", "tests/**", "fuzz/**", "README.md", "CHANGELOG.md", "LICENSE", "Cargo.toml"]
+include = ["src/**", "Cargo.toml", "README.md", "LICENSE", "CHANGELOG.md"]
 
 [dependencies]
 

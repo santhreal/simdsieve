@@ -79,7 +79,7 @@ impl<'a> SimdSieve<'a> {
                 sieve.next_mask_cache = 0;
             }
         }
-        
+
         while sieve.offset + sieve.max_len <= haystack.len() {
             let current_idx = sieve.offset;
             sieve.offset += 1;
@@ -87,13 +87,16 @@ impl<'a> SimdSieve<'a> {
             for p_idx in 0..sieve.pattern_count {
                 let vp = sieve.verification_patterns[p_idx];
                 let prefix_len = vp.len().min(4);
-                if (sieve.verifier)(&haystack[current_idx..current_idx + prefix_len], &vp[..prefix_len]) {
+                if (sieve.verifier)(
+                    &haystack[current_idx..current_idx + prefix_len],
+                    &vp[..prefix_len],
+                ) {
                     global_popcnt += 1;
                     break;
                 }
             }
         }
-        
+
         while sieve.offset <= haystack.len() {
             let current_idx = sieve.offset;
             sieve.offset += 1;
@@ -101,7 +104,12 @@ impl<'a> SimdSieve<'a> {
             for p_idx in 0..sieve.pattern_count {
                 let vp = sieve.verification_patterns[p_idx];
                 let prefix_len = vp.len().min(4);
-                if current_idx + prefix_len <= haystack.len() && (sieve.verifier)(&haystack[current_idx..current_idx + prefix_len], &vp[..prefix_len]) {
+                if current_idx + prefix_len <= haystack.len()
+                    && (sieve.verifier)(
+                        &haystack[current_idx..current_idx + prefix_len],
+                        &vp[..prefix_len],
+                    )
+                {
                     global_popcnt += 1;
                     break;
                 }
@@ -192,7 +200,10 @@ mod sieve_unit_tests {
         let haystack = vec![b'x'; 128];
         let count = SimdSieve::estimate_match_count(&haystack, patterns, false);
         // estimate_match_count is infallible; just verify it returns a finite value.
-        assert!(count <= haystack.len() as u64, "estimate should not exceed haystack length");
+        assert!(
+            count <= haystack.len() as u64,
+            "estimate should not exceed haystack length"
+        );
     }
 
     #[test]
