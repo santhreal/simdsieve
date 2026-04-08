@@ -1,0 +1,10 @@
+#![allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss,
+    clippy::unreadable_literal,
+    clippy::panic,
+    clippy::manual_let_else
+)]
+mod buffer_invariants;
+mod exact_verification;
+mod heuristics;

@@ -1,0 +1,27 @@
+[package]
+name = "simdsieve-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2021"
+repository = "https://github.com/santhsecurity/Santh"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+
+[dependencies.simdsieve]
+path = ".."
+
+[[bin]]
+name = "fuzz_sieve"
+path = "fuzz_targets/fuzz_sieve.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "fuzz_multi"
+path = "fuzz_targets/fuzz_multi.rs"
+test = false
+doc = false

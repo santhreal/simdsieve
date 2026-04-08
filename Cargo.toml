@@ -1,0 +1,37 @@
+[package]
+name = "simdsieve"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+description = "SIMD-accelerated byte pattern pre-filtering with AVX-512, AVX2, NEON, and scalar fallback"
+license = "MIT"
+authors = ["Corum Collective LLC <contact@santh.io>"]
+repository = "https://github.com/santhsecurity/simdsieve"
+homepage = "https://github.com/santht/simdsieve"
+documentation = "https://docs.rs/simdsieve"
+readme = "README.md"
+keywords = ["simd", "avx2", "avx512", "neon", "pattern-matching", "prefilter"]
+categories = ["algorithms", "text-processing"]
+include = ["src/**", "benches/**", "tests/**", "fuzz/**", "README.md", "CHANGELOG.md", "LICENSE", "Cargo.toml"]
+
+[dependencies]
+
+[dev-dependencies]
+criterion = "0.5"
+rand = "0.8"
+libc = "0.2"
+proptest = "1"
+
+[lints.clippy]
+todo = "deny"
+unimplemented = "deny"
+panic = "deny"
+pedantic = { level = "warn", priority = -1 }
+
+[[bench]]
+name = "throughput"
+harness = false
+
+[[bench]]
+name = "legendary_bench"
+harness = false
