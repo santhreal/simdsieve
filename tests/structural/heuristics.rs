@@ -32,7 +32,7 @@ fn test_density_scoring_algorithm() {
     // In typical iteration, returning indices requires 1 branch per match.
     // In Density Scoring, the pure `popcnt` of the folded mask resolves instantly.
 
-    let score = SimdSieve::estimate_match_count(&haystack, &[b"AA", b"BBB"], false).unwrap();
+    let score = SimdSieve::estimate_match_count(&haystack, &[b"AA", b"BBB"], false);
 
     // Score reflects total logical independent boolean hits aggregated globally over the blocks.
     assert!(

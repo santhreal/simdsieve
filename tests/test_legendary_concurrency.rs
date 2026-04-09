@@ -72,7 +72,7 @@ fn test_concurrent_stress_estimate_match_count() {
         let h = Arc::clone(&haystack);
         let pats = patterns.clone();
         handles.push(thread::spawn(move || {
-            let count = SimdSieve::estimate_match_count(&h, &pats, false).unwrap();
+            let count = SimdSieve::estimate_match_count(&h, &pats, false);
             assert!(
                 count > 0,
                 "Concurrent estimate_match_count expected >0 matches for 0xFF haystack"

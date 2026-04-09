@@ -34,6 +34,14 @@ pub enum SimdSieveError {
     ///
     /// The wrapped value is the number of patterns that were passed.
     PatternLimitExceeded(usize),
+    /// A specific pattern is empty (zero bytes).
+    ///
+    /// Empty patterns are not allowed because they would match every position,
+    /// which is almost never useful and would be catastrophic at scale.
+    EmptyPattern {
+        /// Index of the empty pattern.
+        index: usize,
+    },
 }
 
 impl fmt::Display for SimdSieveError {
@@ -45,6 +53,10 @@ impl fmt::Display for SimdSieveError {
             Self::PatternLimitExceeded(c) => write!(
                 f,
                 "sieve construction failed: provided {c} patterns, but hardware router only supports maximum 16"
+            ),
+            Self::EmptyPattern { index } => write!(
+                f,
+                "sieve construction failed: pattern at index {index} is empty"
             ),
         }
     }

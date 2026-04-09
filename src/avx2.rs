@@ -64,7 +64,7 @@ struct Avx2Pattern {
 
 /// AVX2 multi-pattern filter operating on 64-byte blocks.
 ///
-/// Holds up to 16 patterns and produces bitmasks indicating which byte
+/// Holds up to 8 patterns and produces bitmasks indicating which byte
 /// positions in a block match at least one pattern prefix.
 #[derive(Clone)]
 #[repr(C, align(32))]
@@ -107,14 +107,14 @@ impl Avx2Filter {
         ]
     }
 
-    /// Builds an AVX2 filter from up to 16 prefix byte slices.
+    /// Builds an AVX2 filter from up to 8 prefix byte slices.
     ///
     /// Each prefix is truncated to 4 bytes. When `case_insensitive` is
     /// `true`, ASCII `a`-`z` bytes are folded to upper-case.
     ///
     /// # Parameters
     ///
-    /// - `prefixes`: Slice of pattern byte slices (max 16, each max 4 bytes).
+    /// - `prefixes`: Slice of pattern byte slices (max 8, each max 4 bytes).
     /// - `case_insensitive`: Enable ASCII case-insensitive matching.
     ///   Maximum patterns per AVX2 filter. 16 patterns × 4 prefix bytes × 2 pumps
     ///   = 128 comparisons per 64-byte block. Still within AVX2 throughput budget.
@@ -134,9 +134,6 @@ impl Avx2Filter {
 
         for (i, &slice) in prefixes.iter().take(Self::MAX_PATTERNS).enumerate() {
             let eval_len = slice.len().min(4);
-            if eval_len == 0 {
-                continue;
-            }
             let mut arr = [0u8; 4];
             for j in 0..eval_len {
                 arr[j] = if case_insensitive {

@@ -11,7 +11,7 @@ use std::collections::BinaryHeap;
 
 /// A multi-pass sieve that supports any number of patterns.
 ///
-/// Internally, patterns are partitioned into groups of at most 16 entries
+/// Internally, patterns are partitioned into groups of at most eight entries
 /// so each group can reuse the existing [`SimdSieve`]
 /// implementation. Candidate offsets from every group are then merged with a
 /// k-way merge, preserving ascending order and removing duplicates.
@@ -20,7 +20,7 @@ use std::collections::BinaryHeap;
 ///
 /// Returns the same construction errors as [`SimdSieve::new`]. In practice,
 /// only an empty pattern set can fail because `MultiSieve` never forwards more
-/// than 16 patterns to a single underlying sieve.
+/// than eight patterns to a single underlying sieve.
 ///
 /// # Example
 ///

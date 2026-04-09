@@ -168,14 +168,13 @@ fn seventeen_patterns_exceeds_limit() {
 }
 
 #[test]
-fn empty_pattern_set_returns_error() {
-    // Empty patterns are skipped. A set containing only empty patterns
-    // results in EmptyPatternSet error to prevent matching every position.
+fn empty_pattern_returns_error() {
+    // Empty patterns are rejected immediately to prevent matching every position.
     let haystack = b"ABC";
     let result = SimdSieve::new(haystack, &[b""]);
     assert!(
-        result.is_err(),
-        "a set of only empty patterns should return EmptyPatternSet"
+        matches!(result, Err(SimdSieveError::EmptyPattern { index: 0 })),
+        "a set containing an empty pattern should return EmptyPattern error"
     );
 }
 

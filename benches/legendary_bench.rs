@@ -74,7 +74,7 @@ fn bench_throughput_4patterns(c: &mut Criterion) {
     group.finish();
 }
 
-/// Benchmark throughput with 8 patterns.
+/// Benchmark throughput with 8 patterns (maximum).
 fn bench_throughput_8patterns(c: &mut Criterion) {
     let mut group: BenchmarkGroup<'_, WallTime> = c.benchmark_group("throughput_8patterns");
 
@@ -195,7 +195,7 @@ fn bench_estimate_match_count(c: &mut Criterion) {
 
     group.bench_function("estimate_match_count", |b: &mut Bencher<'_>| {
         b.iter(|| {
-            let count = SimdSieve::estimate_match_count(&haystack, &[b"test"], false).unwrap();
+            let count = SimdSieve::estimate_match_count(&haystack, &[b"test"], false);
             black_box(count);
         });
     });

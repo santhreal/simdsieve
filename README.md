@@ -99,7 +99,7 @@ use simdsieve::SimdSieve;
 let haystack = b"aaaaaa";
 let patterns = &[b"a"[..]];
 
-let count = SimdSieve::estimate_match_count(haystack, patterns, false).unwrap();
+let count = SimdSieve::estimate_match_count(haystack, patterns, false);
 assert_eq!(count, 6); // One prefix hit at each position
 ```
 

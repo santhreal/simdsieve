@@ -332,7 +332,7 @@ fn test_1_byte_input_multiple_patterns() {
 #[test]
 fn test_all_256_single_byte_patterns() {
     let patterns: Vec<Vec<u8>> = (0..=255).map(|b| vec![b]).collect();
-    let pattern_refs: Vec<&[u8]> = patterns.iter().map(|p| p.as_slice()).collect();
+    let pattern_refs: Vec<&[u8]> = patterns.iter().map(std::vec::Vec::as_slice).collect();
     let haystack = b"test";
 
     // We expect an error due to pattern limit exceeded
@@ -346,7 +346,7 @@ fn test_all_256_single_byte_patterns() {
 #[test]
 fn test_all_256_single_byte_patterns_empty_haystack() {
     let patterns: Vec<Vec<u8>> = (0..=255).map(|b| vec![b]).collect();
-    let pattern_refs: Vec<&[u8]> = patterns.iter().map(|p| p.as_slice()).collect();
+    let pattern_refs: Vec<&[u8]> = patterns.iter().map(std::vec::Vec::as_slice).collect();
     let haystack = b"";
 
     let result = SimdSieve::new(haystack, &pattern_refs);
@@ -359,7 +359,7 @@ fn test_all_256_single_byte_patterns_empty_haystack() {
 #[test]
 fn test_all_256_single_byte_patterns_case_insensitive() {
     let patterns: Vec<Vec<u8>> = (0..=255).map(|b| vec![b]).collect();
-    let pattern_refs: Vec<&[u8]> = patterns.iter().map(|p| p.as_slice()).collect();
+    let pattern_refs: Vec<&[u8]> = patterns.iter().map(std::vec::Vec::as_slice).collect();
     let haystack = b"test";
 
     let result = SimdSieve::new_case_insensitive(haystack, &pattern_refs);
@@ -374,15 +374,15 @@ fn test_all_256_single_byte_patterns_case_insensitive() {
 #[test]
 fn test_score_density_4096_boundary() {
     let haystack = vec![b'x'; 4096];
-    let count = SimdSieve::estimate_match_count(&haystack, &[b"x"], false).unwrap();
-    assert!(count > 0, "Expected count > 0, got {}", count);
+    let count = SimdSieve::estimate_match_count(&haystack, &[b"x"], false);
+    assert!(count > 0, "Expected count > 0, got {count}");
 }
 
 #[test]
 fn test_score_density_4096_boundary_no_match() {
     let haystack = vec![b'x'; 4096];
-    let count = SimdSieve::estimate_match_count(&haystack, &[b"y"], false).unwrap();
-    assert_eq!(count, 0, "Expected count == 0, got {}", count);
+    let count = SimdSieve::estimate_match_count(&haystack, &[b"y"], false);
+    assert_eq!(count, 0, "Expected count == 0, got {count}");
 }
 
 #[test]
@@ -390,15 +390,15 @@ fn test_score_density_4096_boundary_multiple_patterns() {
     let mut haystack = vec![b'x'; 4096];
     haystack[0] = b'y';
     haystack[4095] = b'z';
-    let count = SimdSieve::estimate_match_count(&haystack, &[b"y", b"z"], false).unwrap();
-    assert!(count > 0, "Expected count > 0, got {}", count);
+    let count = SimdSieve::estimate_match_count(&haystack, &[b"y", b"z"], false);
+    assert!(count > 0, "Expected count > 0, got {count}");
 }
 
 #[test]
 fn test_score_density_4096_boundary_case_insensitive() {
     let haystack = vec![b'X'; 4096];
-    let count = SimdSieve::estimate_match_count(&haystack, &[b"x"], true).unwrap();
-    assert!(count > 0, "Expected count > 0, got {}", count);
+    let count = SimdSieve::estimate_match_count(&haystack, &[b"x"], true);
+    assert!(count > 0, "Expected count > 0, got {count}");
 }
 
 // Group 10: case-insensitive matching for all ASCII letters
@@ -412,7 +412,7 @@ fn test_case_insensitive_all_ascii_letters_chunk1() {
         haystack.push(b);
         patterns.push(vec![b.to_ascii_lowercase()]);
     }
-    let refs: Vec<&[u8]> = patterns.iter().map(|p| p.as_slice()).collect();
+    let refs: Vec<&[u8]> = patterns.iter().map(std::vec::Vec::as_slice).collect();
     assert_matches_reference(
         &haystack,
         &refs,
@@ -430,7 +430,7 @@ fn test_case_insensitive_all_ascii_letters_chunk2() {
         haystack.push(b);
         patterns.push(vec![b.to_ascii_lowercase()]);
     }
-    let refs: Vec<&[u8]> = patterns.iter().map(|p| p.as_slice()).collect();
+    let refs: Vec<&[u8]> = patterns.iter().map(std::vec::Vec::as_slice).collect();
     assert_matches_reference(
         &haystack,
         &refs,
@@ -448,7 +448,7 @@ fn test_case_insensitive_all_ascii_letters_lowercase_haystack() {
         haystack.push(b);
         patterns.push(vec![b.to_ascii_uppercase()]);
     }
-    let refs: Vec<&[u8]> = patterns.iter().map(|p| p.as_slice()).collect();
+    let refs: Vec<&[u8]> = patterns.iter().map(std::vec::Vec::as_slice).collect();
     assert_matches_reference(
         &haystack,
         &refs,
@@ -465,7 +465,7 @@ fn test_case_insensitive_all_ascii_letters_mixed_haystack() {
         // 16 letters
         patterns.push(vec![b.to_ascii_lowercase()]);
     }
-    let refs: Vec<&[u8]> = patterns.iter().map(|p| p.as_slice()).collect();
+    let refs: Vec<&[u8]> = patterns.iter().map(std::vec::Vec::as_slice).collect();
     assert_matches_reference(
         haystack,
         &refs,

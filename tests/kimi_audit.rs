@@ -28,7 +28,7 @@ fn estimate_match_count_greater_than_4kb() {
     let pattern = [b'a'];
 
     // The density score only evaluates up to 4096 bytes.
-    let count = SimdSieve::estimate_match_count(&haystack, &[&pattern], false).unwrap();
+    let count = SimdSieve::estimate_match_count(&haystack, &[&pattern], false);
     // Since pattern is 1 byte, it checks up to 4096 bytes.
     assert!(
         count <= 4096,

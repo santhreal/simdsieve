@@ -239,7 +239,7 @@ fn prefix_filter_parity_across_backends() {
     haystack[127..131].copy_from_slice(b"ABCD");
 
     let patterns: &[&[u8]] = &[b"ABCD", b"\x3F\x40"];
-    let density = SimdSieve::estimate_match_count(&haystack, patterns, false).unwrap();
+    let density = SimdSieve::estimate_match_count(&haystack, patterns, false);
 
     let mut manual = 0u64;
     for i in 0..128 {

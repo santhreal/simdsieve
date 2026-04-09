@@ -36,31 +36,19 @@ impl<'a> SimdSieve<'a> {
 
         let mut max_len = 0;
         let mut verify_patterns = [&b""[..]; 16];
-        let mut count = 0;
 
-        for &p in patterns {
+        for (i, &p) in patterns.iter().enumerate() {
             if p.is_empty() {
-                continue;
-            }
-            // Deduplicate identical patterns to avoid wasting SIMD slots.
-            if verify_patterns[..count].contains(&p) {
-                continue;
+                return Err(SimdSieveError::EmptyPattern { index: i });
             }
             let evaluate_len = if p.len() > 4 { 4 } else { p.len() };
             if evaluate_len > max_len {
                 max_len = evaluate_len;
             }
-            verify_patterns[count] = p;
-            count += 1;
+            verify_patterns[i] = p;
         }
 
-        // If every pattern was empty (or no non-empty patterns remain after
-        // skipping), return EmptyPatternSet. Matching every position with an
-        // empty pattern is never useful and would be catastrophic at scale.
-        if count == 0 {
-            return Err(SimdSieveError::EmptyPatternSet);
-        }
-
+        let count = patterns.len();
         let filter_patterns = &verify_patterns[..count];
         let verifier = if case_insensitive {
             verify_case_insensitive

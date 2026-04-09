@@ -344,12 +344,9 @@ fn estimate_match_count_parity() {
     // Use a haystack large enough to trigger block processing in every backend
     // (AVX-512 needs at least 128 + tail_req bytes).
     let haystack = b"abababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab";
-    let count = SimdSieve::estimate_match_count(haystack, &[b"ab"], false).unwrap();
+    let count = SimdSieve::estimate_match_count(haystack, &[b"ab"], false);
     // estimate_match_count counts prefix hits in SIMD blocks only.
-    assert!(
-        count > 0,
-        "estimate_match_count should find prefix hits in block-processing region"
-    );
+    assert!(count > 0, "estimate_match_count should find prefix hits in block-processing region");
     assert!(
         count <= haystack.len() as u64,
         "estimate_match_count should not exceed haystack length"

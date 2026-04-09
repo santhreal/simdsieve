@@ -225,7 +225,7 @@ fn estimate_match_count_basic() {
     // estimate_match_count counts prefix hits in SIMD blocks (not tail region)
     // Need at least 64+ bytes for block processing
     let haystack = vec![b'a'; 128];
-    let count = SimdSieve::estimate_match_count(&haystack, &[b"a"], false).unwrap();
+    let count = SimdSieve::estimate_match_count(&haystack, &[b"a"], false);
     // estimate_match_count counts raw SIMD mask popcount from block processing
     // For a 128-byte haystack of all 'a's with pattern "a":
     // - Each block position matches
@@ -242,7 +242,7 @@ fn estimate_match_count_basic() {
 fn estimate_match_count_multiple_patterns() {
     // estimate_match_count counts prefix hits across all patterns from block processing
     let haystack = b"abababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab";
-    let count = SimdSieve::estimate_match_count(haystack, &[b"a", b"b"], false).unwrap();
+    let count = SimdSieve::estimate_match_count(haystack, &[b"a", b"b"], false);
     // Each position in blocks matches prefix of either 'a' or 'b'
     assert!(
         count > 0,
@@ -254,7 +254,7 @@ fn estimate_match_count_multiple_patterns() {
 #[test]
 fn estimate_match_count_limited_to_4kb() {
     let haystack = vec![b'a'; 10000];
-    let count = SimdSieve::estimate_match_count(&haystack, &[b"a"], false).unwrap();
+    let count = SimdSieve::estimate_match_count(&haystack, &[b"a"], false);
     // Should only scan first 4096 bytes
     assert_eq!(count, 4096, "estimate_match_count should be limited to 4KB");
 }

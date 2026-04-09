@@ -25,8 +25,8 @@ fn test_empty_pattern_set_returns_error() {
 fn test_all_empty_patterns_return_error() {
     let result = SimdSieve::new(b"haystack", &[b"", b""]);
     assert!(
-        matches!(result, Err(SimdSieveError::EmptyPatternSet)),
-        "All-empty patterns must return EmptyPatternSet error"
+        matches!(result, Err(SimdSieveError::EmptyPattern { index: 0 })),
+        "All-empty patterns must return EmptyPattern error"
     );
 }
 

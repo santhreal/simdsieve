@@ -84,7 +84,7 @@ fn test_adversarial_off_by_one_boundary() {
 #[test]
 fn test_adversarial_empty_pattern() {
     let haystack = b"hello";
-    // A set of only empty patterns returns EmptyPatternSet error.
+    // A set containing an empty pattern returns EmptyPattern error.
     // Matching every position is never useful and catastrophic at scale.
     let result = SimdSieve::new(haystack, &[b""]);
     assert!(result.is_err(), "empty-only pattern set should error");
