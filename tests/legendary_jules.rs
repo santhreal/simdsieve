@@ -190,7 +190,7 @@ fn score_density_random_data() {
 
     // Pattern "A" should have probability 1/256 of matching
     // Over 4096 bytes, expected match count is around 16.
-    let count = SimdSieve::estimate_match_count(&haystack, &[b"A"], false);
+    let count = SimdSieve::estimate_match_count(&haystack, &[b"A"], false).unwrap();
 
     // It should be reasonably close to 16, let's say between 5 and 35
     assert!(
@@ -199,7 +199,7 @@ fn score_density_random_data() {
     );
 
     // Pattern "AB" should have probability 1/65536, expected matches: ~0
-    let count2 = SimdSieve::estimate_match_count(&haystack, &[b"AB"], false);
+    let count2 = SimdSieve::estimate_match_count(&haystack, &[b"AB"], false).unwrap();
     assert!(
         count2 <= 5,
         "Estimated match count {count2} is too high for 2-byte pattern"

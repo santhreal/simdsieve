@@ -76,6 +76,6 @@ fn test_simdsieve_iterator_size_hint() {
 #[test]
 fn test_estimate_match_count_exists() {
     let haystack = vec![b'a'; 256];
-    let count = SimdSieve::estimate_match_count(&haystack, &[b"a"], false);
+    let count = SimdSieve::estimate_match_count(&haystack, &[b"a"], false).unwrap();
     assert!(count > 0, "Should have counted matches (got {count})");
 }

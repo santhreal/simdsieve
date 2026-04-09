@@ -374,14 +374,14 @@ fn test_all_256_single_byte_patterns_case_insensitive() {
 #[test]
 fn test_score_density_4096_boundary() {
     let haystack = vec![b'x'; 4096];
-    let count = SimdSieve::estimate_match_count(&haystack, &[b"x"], false);
+    let count = SimdSieve::estimate_match_count(&haystack, &[b"x"], false).unwrap();
     assert!(count > 0, "Expected count > 0, got {}", count);
 }
 
 #[test]
 fn test_score_density_4096_boundary_no_match() {
     let haystack = vec![b'x'; 4096];
-    let count = SimdSieve::estimate_match_count(&haystack, &[b"y"], false);
+    let count = SimdSieve::estimate_match_count(&haystack, &[b"y"], false).unwrap();
     assert_eq!(count, 0, "Expected count == 0, got {}", count);
 }
 
@@ -390,14 +390,14 @@ fn test_score_density_4096_boundary_multiple_patterns() {
     let mut haystack = vec![b'x'; 4096];
     haystack[0] = b'y';
     haystack[4095] = b'z';
-    let count = SimdSieve::estimate_match_count(&haystack, &[b"y", b"z"], false);
+    let count = SimdSieve::estimate_match_count(&haystack, &[b"y", b"z"], false).unwrap();
     assert!(count > 0, "Expected count > 0, got {}", count);
 }
 
 #[test]
 fn test_score_density_4096_boundary_case_insensitive() {
     let haystack = vec![b'X'; 4096];
-    let count = SimdSieve::estimate_match_count(&haystack, &[b"x"], true);
+    let count = SimdSieve::estimate_match_count(&haystack, &[b"x"], true).unwrap();
     assert!(count > 0, "Expected count > 0, got {}", count);
 }
 

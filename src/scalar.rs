@@ -143,6 +143,9 @@ impl ScalarFilter {
 
         for (i, &slice) in prefixes.iter().take(Self::MAX_PATTERNS).enumerate() {
             let eval_len = slice.len().min(4);
+            if eval_len == 0 {
+                continue;
+            }
             let mut arr = [0u8; 4];
 
             for j in 0..eval_len {

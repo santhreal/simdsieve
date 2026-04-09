@@ -182,7 +182,7 @@ fn estimate_match_count_basic() {
     // estimate_match_count counts SIMD-level prefix hits (not tail-processed bytes)
     // Need a longer haystack to trigger block processing
     let haystack = vec![b'a'; 100]; // 100 'a' characters
-    let count = SimdSieve::estimate_match_count(&haystack, &[b"a"], false);
+    let count = SimdSieve::estimate_match_count(&haystack, &[b"a"], false).unwrap();
     // Should count hits from block processing (64 bytes per scalar block)
     // Exact count depends on backend but should be > 0
     assert!(count > 0, "estimate_match_count should find prefix hits");
@@ -191,7 +191,7 @@ fn estimate_match_count_basic() {
 #[test]
 fn estimate_match_count_no_matches() {
     let haystack = b"bbbb";
-    let count = SimdSieve::estimate_match_count(haystack, &[b"a"], false);
+    let count = SimdSieve::estimate_match_count(haystack, &[b"a"], false).unwrap();
     assert_eq!(count, 0);
 }
 
@@ -201,7 +201,7 @@ fn estimate_match_count_prefix_only() {
     // This test documents that estimate_match_count counts SIMD-level prefix hits
     // which may differ from logical prefix matches for patterns >4 bytes
     let haystack = b"abcd";
-    let count = SimdSieve::estimate_match_count(haystack, &[b"abce"], false);
+    let count = SimdSieve::estimate_match_count(haystack, &[b"abce"], false).unwrap();
     // Note: The exact count depends on internal SIMD implementation details
     assert!(count <= 1);
 }

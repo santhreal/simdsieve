@@ -56,7 +56,7 @@ struct Avx512Pattern {
 
 /// AVX-512 multi-pattern filter operating on 128-byte blocks.
 ///
-/// Holds up to 8 patterns and produces bitmasks indicating which byte
+/// Holds up to 16 patterns and produces bitmasks indicating which byte
 /// positions in a block match at least one pattern prefix.
 #[derive(Debug, Clone)]
 #[repr(C, align(64))]
@@ -72,14 +72,14 @@ pub(crate) struct Avx512Filter {
 }
 
 impl Avx512Filter {
-    /// Builds an AVX-512 filter from up to 8 prefix byte slices.
+    /// Builds an AVX-512 filter from up to 16 prefix byte slices.
     ///
     /// Each prefix is truncated to 4 bytes. When `case_insensitive` is
     /// `true`, ASCII `a`-`z` bytes are folded to upper-case.
     ///
     /// # Parameters
     ///
-    /// - `prefixes`: Slice of pattern byte slices (max 8, each max 4 bytes).
+    /// - `prefixes`: Slice of pattern byte slices (max 16, each max 4 bytes).
     /// - `case_insensitive`: Enable ASCII case-insensitive matching.
     #[must_use]
     #[target_feature(enable = "avx512f", enable = "avx512bw")]
@@ -93,6 +93,9 @@ impl Avx512Filter {
 
         for (i, &slice) in prefixes.iter().take(16).enumerate() {
             let eval_len = slice.len().min(4);
+            if eval_len == 0 {
+                continue;
+            }
             let mut arr = [0u8; 4];
             for j in 0..eval_len {
                 arr[j] = if case_insensitive {

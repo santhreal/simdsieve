@@ -42,6 +42,10 @@ impl<'a> SimdSieve<'a> {
             if p.is_empty() {
                 continue;
             }
+            // Deduplicate identical patterns to avoid wasting SIMD slots.
+            if verify_patterns[..count].contains(&p) {
+                continue;
+            }
             let evaluate_len = if p.len() > 4 { 4 } else { p.len() };
             if evaluate_len > max_len {
                 max_len = evaluate_len;

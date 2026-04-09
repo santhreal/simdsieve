@@ -270,7 +270,7 @@ fn test_17_multiple_patterns_longer_than_64_bytes() {
 fn test_18_estimate_match_count_4kb_boundary_exact() {
     let mut haystack = vec![b'a'; 8192];
     haystack[4095] = b'b'; // Match exactly at the 4096 boundary (index 4095)
-    let count = SimdSieve::estimate_match_count(&haystack, &[b"b"], false);
+    let count = SimdSieve::estimate_match_count(&haystack, &[b"b"], false).unwrap();
     assert_eq!(count, 1, "Should count 1 match within the first 4KB");
 }
 
@@ -278,7 +278,7 @@ fn test_18_estimate_match_count_4kb_boundary_exact() {
 fn test_19_estimate_match_count_4kb_boundary_outside() {
     let mut haystack = vec![b'a'; 8192];
     haystack[4096] = b'b'; // Match exactly outside the 4096 boundary (index 4096)
-    let count = SimdSieve::estimate_match_count(&haystack, &[b"b"], false);
+    let count = SimdSieve::estimate_match_count(&haystack, &[b"b"], false).unwrap();
     assert_eq!(count, 0, "Should count 0 matches since it is beyond 4KB");
 }
 
@@ -290,7 +290,7 @@ fn test_20_estimate_match_count_multiple_within_4kb() {
     haystack[4095] = b'x';
     haystack[4096] = b'x'; // Outside
     haystack[8191] = b'x'; // Outside
-    let count = SimdSieve::estimate_match_count(&haystack, &[b"x"], false);
+    let count = SimdSieve::estimate_match_count(&haystack, &[b"x"], false).unwrap();
     assert_eq!(count, 3, "Should count exactly 3 matches within first 4KB");
 }
 
@@ -370,7 +370,7 @@ fn test_26_16_patterns_common_prefix() {
 #[test]
 fn test_27_estimate_match_count_all_matches_4kb() {
     let haystack = vec![b'x'; 8192];
-    let count = SimdSieve::estimate_match_count(&haystack, &[b"x"], false);
+    let count = SimdSieve::estimate_match_count(&haystack, &[b"x"], false).unwrap();
     assert_eq!(count, 4096, "Should count 4096 matches in the first 4KB");
 }
 
@@ -380,7 +380,7 @@ fn test_28_estimate_match_count_overlapping_4kb() {
     // "aa" overlaps. estimate_match_count counts prefix hits.
     // The prefix of "aa" is "aa".
     // "aa" appears at indices 0..4095.
-    let count = SimdSieve::estimate_match_count(&haystack, &[b"aa"], false);
+    let count = SimdSieve::estimate_match_count(&haystack, &[b"aa"], false).unwrap();
     assert_eq!(
         count, 4095,
         "Should count 4095 prefix hits in the first 4KB"
@@ -392,20 +392,20 @@ fn test_29_estimate_match_count_case_insensitive() {
     let mut haystack = vec![b'a'; 8192];
     haystack[10] = b'A';
     haystack[20] = b'X';
-    let count = SimdSieve::estimate_match_count(&haystack, &[b"X"], true);
+    let count = SimdSieve::estimate_match_count(&haystack, &[b"X"], true).unwrap();
     assert_eq!(count, 1, "Should count 1 match for X (case insensitive)");
 }
 
 #[test]
 fn test_30_estimate_match_count_empty_haystack() {
-    let count = SimdSieve::estimate_match_count(b"", &[b"x"], false);
+    let count = SimdSieve::estimate_match_count(b"", &[b"x"], false).unwrap();
     assert_eq!(count, 0, "Should count 0 matches in empty haystack");
 }
 
 #[test]
 fn test_31_estimate_match_count_haystack_less_than_4kb() {
     let haystack = vec![b'x'; 100];
-    let count = SimdSieve::estimate_match_count(&haystack, &[b"x"], false);
+    let count = SimdSieve::estimate_match_count(&haystack, &[b"x"], false).unwrap();
     assert_eq!(count, 100, "Should count exactly 100 matches");
 }
 
@@ -415,7 +415,7 @@ fn test_32_estimate_match_count_multiple_patterns() {
     haystack[100] = b'x';
     haystack[200] = b'y';
     haystack[300] = b'z';
-    let count = SimdSieve::estimate_match_count(&haystack, &[b"x", b"y", b"z"], false);
+    let count = SimdSieve::estimate_match_count(&haystack, &[b"x", b"y", b"z"], false).unwrap();
     assert_eq!(count, 3, "Should count 3 matches in the first 4KB");
 }
 
