@@ -10,7 +10,7 @@ repository = "https://github.com/santhsecurity/simdsieve"
 homepage = "https://github.com/santhsecurity/simdsieve"
 documentation = "https://docs.rs/simdsieve"
 readme = "README.md"
-keywords = ["simd", "avx2", "avx512", "neon", "pattern-matching", "prefilter"]
+keywords = ["simd", "avx2", "avx512", "neon", "pattern-matching"]
 categories = ["algorithms", "text-processing"]
 include = ["src/**", "Cargo.toml", "README.md", "LICENSE", "CHANGELOG.md"]
 
