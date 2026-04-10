@@ -19,7 +19,7 @@
 //!
 //! This reduces 8 patterns x 4 bytes = 32 comparisons to 8 `u32` operations.
 
-// SAFETY: this module is the crate's only allowed unsafe surface. The hot-path
+// SAFETY: this module is one of the crate's unsafe surfaces. The hot-path
 // unchecked loads in `check_64byte_block` are guarded by an explicit slice-length
 // precondition that proves every accessed byte is in bounds.
 

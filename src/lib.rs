@@ -46,6 +46,7 @@
 //! ```
 
 #![warn(missing_docs, clippy::pedantic)]
+#![forbid(unsafe_op_in_unsafe_fn)]
 #![cfg_attr(not(test), deny(clippy::unwrap_used, clippy::expect_used))]
 #![cfg_attr(
     test,

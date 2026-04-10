@@ -196,12 +196,20 @@ fn estimate_match_count_no_matches() {
 }
 
 #[test]
-#[ignore = "estimate_match_count may not detect prefix-only matches correctly for multi-byte patterns"]
 fn estimate_match_count_prefix_only() {
-    // This test documents that estimate_match_count counts SIMD-level prefix hits
-    // which may differ from logical prefix matches for patterns >4 bytes
+    // estimate_match_count counts raw prefix hits (first 1–4 bytes).
+    // It does not verify that the full pattern fits in the remaining haystack.
     let haystack = b"abcd";
     let count = SimdSieve::estimate_match_count(haystack, &[b"abce"], false);
-    // Note: The exact count depends on internal SIMD implementation details
-    assert!(count <= 1);
+    assert_eq!(count, 0);
+}
+
+#[test]
+fn estimate_match_count_long_pattern_edge() {
+    // A prefix can match even when the full pattern does not fit at the end
+    // of the haystack. estimate_match_count counts these prefix hits.
+    let haystack = b"abcde";
+    let count = SimdSieve::estimate_match_count(haystack, &[b"abcdef"], false);
+    // Prefix "abcd" matches at position 0, but the full 6-byte pattern doesn't fit.
+    assert_eq!(count, 1);
 }

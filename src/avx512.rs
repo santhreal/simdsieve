@@ -56,7 +56,7 @@ struct Avx512Pattern {
 
 /// AVX-512 multi-pattern filter operating on 128-byte blocks.
 ///
-/// Holds up to 8 patterns and produces bitmasks indicating which byte
+/// Holds up to 16 patterns and produces bitmasks indicating which byte
 /// positions in a block match at least one pattern prefix.
 #[derive(Debug, Clone)]
 #[repr(C, align(64))]
@@ -72,7 +72,7 @@ pub(crate) struct Avx512Filter {
 }
 
 impl Avx512Filter {
-    /// Builds an AVX-512 filter from up to 8 prefix byte slices.
+    /// Builds an AVX-512 filter from up to 16 prefix byte slices.
     ///
     /// Each prefix is truncated to 4 bytes. When `case_insensitive` is
     /// `true`, ASCII `a`-`z` bytes are folded to upper-case.
@@ -85,6 +85,7 @@ impl Avx512Filter {
     #[target_feature(enable = "avx512f", enable = "avx512bw")]
     pub(crate) unsafe fn new(prefixes: &[&[u8]], case_insensitive: bool) -> Self {
         let mut max_len = 0;
+        debug_assert!(prefixes.len() <= 16, "AVX-512 filter given more than 16 prefixes");
         let count = prefixes.len().min(16);
 
         // Zero-initialize the array safely to avoid UB from uninitialized padding

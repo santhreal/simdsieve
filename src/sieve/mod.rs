@@ -46,6 +46,12 @@ impl<'a> SimdSieve<'a> {
     /// full-length verification—it counts raw SIMD bitmask popcount.
     /// Use this for density estimation when deciding whether to use
     /// a more expensive verification algorithm.
+    ///
+    /// # Notes
+    ///
+    /// This counts every position where the first 1–4 bytes of any pattern
+    /// match, even if the full pattern is longer than the remaining haystack.
+    /// For density estimation on large inputs this edge effect is negligible.
     #[must_use]
     pub fn estimate_match_count(
         haystack: &'a [u8],

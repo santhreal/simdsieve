@@ -64,7 +64,7 @@ struct Avx2Pattern {
 
 /// AVX2 multi-pattern filter operating on 64-byte blocks.
 ///
-/// Holds up to 8 patterns and produces bitmasks indicating which byte
+/// Holds up to 16 patterns and produces bitmasks indicating which byte
 /// positions in a block match at least one pattern prefix.
 #[derive(Clone)]
 #[repr(C, align(32))]
@@ -107,7 +107,7 @@ impl Avx2Filter {
         ]
     }
 
-    /// Builds an AVX2 filter from up to 8 prefix byte slices.
+    /// Builds an AVX2 filter from up to 16 prefix byte slices.
     ///
     /// Each prefix is truncated to 4 bytes. When `case_insensitive` is
     /// `true`, ASCII `a`-`z` bytes are folded to upper-case.

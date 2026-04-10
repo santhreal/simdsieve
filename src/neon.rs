@@ -65,6 +65,9 @@ impl NeonFilter {
 
     /// Builds a NEON filter from up to 16 prefix byte slices.
     ///
+    /// Each prefix is truncated to 4 bytes. When `case_insensitive` is
+    /// `true`, ASCII `a`–`z` bytes are folded to upper-case.
+    ///
     /// # Safety
     ///
     /// Caller must ensure NEON is available before calling this function.
