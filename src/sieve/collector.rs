@@ -11,6 +11,7 @@ impl Iterator for SimdSieve<'_> {
         (0, Some(self.haystack.len().saturating_sub(self.offset)))
     }
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         loop {
             // Consume bits from current mask first.

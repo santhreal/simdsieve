@@ -48,6 +48,7 @@ impl HardwareTier {
 
 impl SimdSieve<'_> {
     /// Advances the scan by one block, filling `current_mask`.
+    #[inline]
     #[allow(clippy::too_many_lines)]
     pub(crate) fn fetch_next_chunk(&mut self) -> bool {
         let tail_req = self.max_len.saturating_sub(1);

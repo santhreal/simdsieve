@@ -136,8 +136,8 @@ impl NeonFilter {
     #[target_feature(enable = "neon")]
     #[inline(always)]
     unsafe fn neon_movemask(v: uint8x16_t) -> u16 {
-        let bit_weights = [1, 2, 4, 8, 16, 32, 64, 128, 1, 2, 4, 8, 16, 32, 64, 128];
-        let weights = vld1q_u8(bit_weights.as_ptr());
+        const BIT_WEIGHTS: [u8; 16] = [1, 2, 4, 8, 16, 32, 64, 128, 1, 2, 4, 8, 16, 32, 64, 128];
+        let weights = vld1q_u8(BIT_WEIGHTS.as_ptr());
         let tmp = vandq_u8(v, weights);
 
         let tmp16 = vpaddlq_u8(tmp);
