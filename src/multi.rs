@@ -1,6 +1,6 @@
-//! Multi-pass search support for pattern sets larger than eight entries.
+//! Multi-pass search support for pattern sets larger than 16 entries.
 //!
-//! `MultiSieve` batches arbitrary pattern sets into groups of eight, runs one
+//! `MultiSieve` batches arbitrary pattern sets into groups of 16, runs one
 //! [`SimdSieve`] per group, then merges the sorted candidate
 //! streams into a single sorted, deduplicated iterator.
 
@@ -20,7 +20,7 @@ use std::collections::BinaryHeap;
 ///
 /// Returns the same construction errors as [`SimdSieve::new`]. In practice,
 /// only an empty pattern set can fail because `MultiSieve` never forwards more
-/// than eight patterns to a single underlying sieve.
+/// than 16 patterns to a single underlying sieve.
 ///
 /// # Example
 ///
@@ -42,7 +42,7 @@ pub struct MultiSieve<'a> {
 }
 
 impl<'a> MultiSieve<'a> {
-    /// Creates a multi-pass sieve from any number of patterns.
+    /// Creates a new exact-match multi-pass sieve.
     ///
     /// Patterns are grouped into chunks of 16 so each chunk can be searched
     /// by a regular [`SimdSieve`] (AVX2 supports up to 16 patterns per filter).
@@ -51,6 +51,22 @@ impl<'a> MultiSieve<'a> {
     ///
     /// Returns an error if the pattern set is empty.
     pub fn new(haystack: &'a [u8], patterns: &[&'a [u8]]) -> Result<Self> {
+        Self::build(haystack, patterns, false)
+    }
+
+    /// Creates a case-insensitive multi-pass sieve (ASCII `a`–`z` only).
+    ///
+    /// Patterns are grouped into chunks of 16 so each chunk can be searched
+    /// by a regular [`SimdSieve`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the pattern set is empty.
+    pub fn new_case_insensitive(haystack: &'a [u8], patterns: &[&'a [u8]]) -> Result<Self> {
+        Self::build(haystack, patterns, true)
+    }
+
+    fn build(haystack: &'a [u8], patterns: &[&'a [u8]], case_insensitive: bool) -> Result<Self> {
         if patterns.is_empty() {
             return Err(crate::error::SimdSieveError::EmptyPatternSet);
         }
@@ -63,7 +79,12 @@ impl<'a> MultiSieve<'a> {
         let mut sieves = Vec::with_capacity(patterns.len().div_ceil(16));
 
         for chunk in patterns.chunks(16) {
-            sieves.push(SimdSieve::new(haystack, chunk)?);
+            let sieve = if case_insensitive {
+                SimdSieve::new_case_insensitive(haystack, chunk)?
+            } else {
+                SimdSieve::new(haystack, chunk)?
+            };
+            sieves.push(sieve);
         }
 
         Ok(Self { sieves })
@@ -175,10 +196,10 @@ impl Iterator for MultiCandidates<'_> {
                 MergeState::Three(vals) => {
                     let mut best = None;
                     for (sieve_index, position) in vals.iter().enumerate() {
-                        if let Some(position) = *position {
-                            if best.is_none_or(|(_, best_pos)| position < best_pos) {
-                                best = Some((sieve_index, position));
-                            }
+                        if let Some(position) = *position
+                            && best.is_none_or(|(_, best_pos)| position < best_pos)
+                        {
+                            best = Some((sieve_index, position));
                         }
                     }
                     best.map(|(sieve_index, position)| HeapEntry {
@@ -339,5 +360,18 @@ mod tests {
             .collect();
 
         assert_eq!(actual, vec![0, 9, 18]);
+    }
+
+    #[test]
+    fn case_insensitive_multi_sieve_matches() {
+        let haystack = b"Alpha Beta GAMMA delta";
+        let patterns: &[&[u8]] = &[b"alpha", b"GAMMA", b"Delta"];
+
+        let actual: Vec<usize> = MultiSieve::new_case_insensitive(haystack, patterns)
+            .unwrap()
+            .candidates()
+            .collect();
+
+        assert_eq!(actual, vec![0, 11, 17]);
     }
 }

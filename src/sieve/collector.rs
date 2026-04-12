@@ -45,10 +45,7 @@ impl Iterator for SimdSieve<'_> {
             if self.next_mask_cache != 0 {
                 self.current_mask = self.next_mask_cache;
                 self.next_mask_cache = 0;
-                #[cfg(any(target_arch = "x86_64", target_arch = "aarch64"))]
-                {
-                    self.mask_base_offset += self.tier.half_block_stride();
-                }
+                self.mask_base_offset += self.tier.half_block_stride();
                 continue;
             }
 

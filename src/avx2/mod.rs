@@ -89,6 +89,18 @@ impl core::fmt::Debug for Avx2Filter {
     }
 }
 
+impl Default for Avx2Filter {
+    #[inline]
+    fn default() -> Self {
+        Self {
+            patterns: unsafe { core::mem::zeroed() },
+            pattern_count: 0,
+            max_len: 0,
+            case_insensitive: false,
+        }
+    }
+}
+
 impl Avx2Filter {
     /// Builds the broadcast vectors for a single pattern prefix.
     ///
@@ -114,25 +126,30 @@ impl Avx2Filter {
     ///
     /// # Parameters
     ///
-    /// - `prefixes`: Slice of pattern byte slices (max 8, each max 4 bytes).
+    /// - `prefixes`: Slice of pattern byte slices (max 16, each max 4 bytes).
     /// - `case_insensitive`: Enable ASCII case-insensitive matching.
-    ///   Maximum patterns per AVX2 filter. 16 patterns × 4 prefix bytes × 2 pumps
-    ///   = 128 comparisons per 64-byte block. Still within AVX2 throughput budget.
-    pub(crate) const MAX_PATTERNS: usize = 16;
-
+    ///
     /// # Safety
     ///
     /// Caller must ensure AVX2 is available before calling this function.
+    /// Caller must also ensure `prefixes.len() <= MAX_PATTERNS`.
+    #[must_use]
     pub(crate) unsafe fn new(prefixes: &[&[u8]], case_insensitive: bool) -> Self {
         let mut max_len = 0;
-        let count = prefixes.len().min(Self::MAX_PATTERNS);
+        debug_assert!(
+            prefixes.len() <= crate::MAX_PATTERNS,
+            "AVX2 filter given {} prefixes, max is {}",
+            prefixes.len(),
+            crate::MAX_PATTERNS
+        );
+        let count = prefixes.len();
 
         // Zero-initialize the array to avoid UB from uninitialized padding or
         // uninitialized elements when count < 16. All-zero is a valid representation
         // for Avx2Pattern, including its __m256i fields.
         let mut patterns: [Avx2Pattern; 16] = unsafe { core::mem::zeroed() };
 
-        for (i, &slice) in prefixes.iter().take(Self::MAX_PATTERNS).enumerate() {
+        for (i, &slice) in prefixes.iter().take(crate::MAX_PATTERNS).enumerate() {
             let eval_len = slice.len().min(4);
             let mut arr = [0u8; 4];
             for j in 0..eval_len {
@@ -404,103 +421,4 @@ impl Avx2Filter {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::Avx2Filter;
-    use crate::scalar::ScalarFilter;
-
-    #[test]
-    fn case_insensitive_masks_expose_pump_b_boundary_state() {
-        if !std::is_x86_feature_detected!("avx2") {
-            return;
-        }
-
-        let filter = unsafe { Avx2Filter::new(&[b"Z"], true) };
-        let mut block = [b'x'; 65];
-        block[63] = b'Z';
-
-        let (mask_a, mask_b) = unsafe { filter.check_64byte_block(&block) };
-        eprintln!("mask_a={mask_a:032b}");
-        eprintln!("mask_b={mask_b:032b}");
-
-        assert_eq!(mask_a, 0);
-        assert_eq!(mask_b & (1 << 31), 1 << 31);
-    }
-
-    #[test]
-    fn avx2_64byte_block_matches_scalar() {
-        if !std::is_x86_feature_detected!("avx2") {
-            return;
-        }
-
-        let patterns: &[&[u8]] = &[b"ab", b"XY", b"1"];
-        let avx2 = unsafe { Avx2Filter::new(patterns, false) };
-        let scalar = ScalarFilter::new(patterns, false);
-
-        let mut block = [b'x'; 68];
-        block[10] = b'a';
-        block[11] = b'b';
-        block[35] = b'X';
-        block[36] = b'Y';
-        block[63] = b'1';
-
-        let (mask_a, mask_b) = unsafe { avx2.check_64byte_block(&block) };
-        let scalar_mask = scalar.check_64byte_block(&block);
-        let avx2_mask = u64::from(mask_a) | (u64::from(mask_b) << 32);
-
-        assert_eq!(
-            avx2_mask, scalar_mask,
-            "AVX2 64-byte block must match scalar backend"
-        );
-    }
-
-    #[test]
-    fn avx2_32byte_block_matches_scalar() {
-        if !std::is_x86_feature_detected!("avx2") {
-            return;
-        }
-
-        let patterns: &[&[u8]] = &[b"te", b"ST"];
-        let avx2 = unsafe { Avx2Filter::new(patterns, false) };
-        let scalar = ScalarFilter::new(patterns, false);
-
-        // Scalar check_64byte_block needs 64 + max_len - 1 bytes.
-        let mut block = [b'x'; 65];
-        block[5] = b't';
-        block[6] = b'e';
-        block[30] = b'S';
-        block[31] = b'T';
-
-        let avx2_mask = unsafe { avx2.check_32byte_block(&block) };
-        let scalar_mask = scalar.check_64byte_block(&block) as u32;
-
-        assert_eq!(
-            avx2_mask, scalar_mask,
-            "AVX2 32-byte block must match scalar backend low 32 bits"
-        );
-    }
-
-    #[test]
-    fn avx2_case_insensitive_matches_scalar() {
-        if !std::is_x86_feature_detected!("avx2") {
-            return;
-        }
-
-        let patterns: &[&[u8]] = &[b"Ab", b"z"];
-        let avx2 = unsafe { Avx2Filter::new(patterns, true) };
-        let scalar = ScalarFilter::new(patterns, true);
-
-        let mut block = [b'x'; 68];
-        block[15] = b'a';
-        block[16] = b'B';
-        block[47] = b'Z';
-
-        let (mask_a, mask_b) = unsafe { avx2.check_64byte_block(&block) };
-        let scalar_mask = scalar.check_64byte_block(&block);
-        let avx2_mask = u64::from(mask_a) | (u64::from(mask_b) << 32);
-
-        assert_eq!(
-            avx2_mask, scalar_mask,
-            "AVX2 case-insensitive must match scalar backend"
-        );
-    }
-}
+mod tests;

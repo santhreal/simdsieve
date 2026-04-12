@@ -5,4 +5,5 @@
     clippy::panic,
     clippy::manual_let_else
 )]
+#[path = "../concurrency/mod.rs"]
 mod concurrency;

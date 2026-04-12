@@ -163,6 +163,9 @@ soundness:
 ❌ **Not ideal for:**
 - Single small haystacks (<1KB)
 - Patterns longer than 4 bytes that differ only after position 4
+- Pattern sets that share a long common prefix against uniform haystacks
+  (this shifts the bottleneck from SIMD filtering to byte-by-byte verification,
+  resulting in O(n × pattern_count) work)
 - When you need capture groups or regex features
 
 ### Prefetching

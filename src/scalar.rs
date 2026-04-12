@@ -133,15 +133,23 @@ fn load_u32_safe(block: &[u8], offset: usize) -> u32 {
 }
 
 impl ScalarFilter {
-    pub(crate) const MAX_PATTERNS: usize = 16;
-
     /// Builds a scalar filter from up to 16 prefix slices.
+    ///
+    /// # Panics
+    ///
+    /// Panics in debug builds if `prefixes.len() > MAX_PATTERNS`.
     #[must_use]
     pub(crate) fn new(prefixes: &[&[u8]], case_insensitive: bool) -> Self {
         let mut ptrns = [ScalarPattern::default(); 16];
-        let count = prefixes.len().min(Self::MAX_PATTERNS);
+        debug_assert!(
+            prefixes.len() <= crate::MAX_PATTERNS,
+            "scalar filter given {} prefixes, max is {}",
+            prefixes.len(),
+            crate::MAX_PATTERNS
+        );
+        let count = prefixes.len();
 
-        for (i, &slice) in prefixes.iter().take(Self::MAX_PATTERNS).enumerate() {
+        for (i, &slice) in prefixes.iter().take(crate::MAX_PATTERNS).enumerate() {
             let eval_len = slice.len().min(4);
             let mut arr = [0u8; 4];
 
@@ -177,10 +185,11 @@ impl ScalarFilter {
     /// the block, optionally folds case, masks to the pattern length, and
     /// compares in one operation.
     ///
-    /// # Panics
+    /// # Preconditions
     ///
-    /// The block must contain at least `64 + max_len - 1` bytes so that
-    /// multi-byte prefix comparisons do not read out of bounds.
+    /// For full multi-byte prefix coverage, the block should contain at least
+    /// `64 + max_len - 1` bytes. The function is defensive and skips patterns
+    /// or positions that would read out of bounds.
     #[must_use]
     #[inline]
     pub(crate) fn check_64byte_block(&self, block: &[u8]) -> u64 {
@@ -252,7 +261,7 @@ impl ScalarFilter {
                 i += 4;
             }
 
-            while i < 64 {
+            while i < block.len().min(64) {
                 let loaded = load_u32_safe(block, i);
                 let folded = if ci { fold_case_u32(loaded) } else { loaded };
                 if (folded ^ pat_word) & pat_mask == 0 {

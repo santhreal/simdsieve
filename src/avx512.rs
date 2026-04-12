@@ -2,8 +2,7 @@
 //!
 #![allow(
     clippy::similar_names,
-    clippy::cast_possible_wrap,
-    clippy::incompatible_msrv
+    clippy::cast_possible_wrap
 )]
 //! This module implements the AVX-512 (512-bit) backend for `x86_64` targets.
 //! It processes 128-byte blocks using two 64-byte "pumps" to maximize
@@ -79,20 +78,30 @@ impl Avx512Filter {
     ///
     /// # Parameters
     ///
-    /// - `prefixes`: Slice of pattern byte slices (max 8, each max 4 bytes).
+    /// - `prefixes`: Slice of pattern byte slices (max 16, each max 4 bytes).
     /// - `case_insensitive`: Enable ASCII case-insensitive matching.
+    ///
+    /// # Safety
+    ///
+    /// Caller must ensure AVX-512F and AVX-512BW are available.
+    /// Caller must also ensure `prefixes.len() <= MAX_PATTERNS`.
     #[must_use]
     #[target_feature(enable = "avx512f", enable = "avx512bw")]
     pub(crate) unsafe fn new(prefixes: &[&[u8]], case_insensitive: bool) -> Self {
         let mut max_len = 0;
-        debug_assert!(prefixes.len() <= 16, "AVX-512 filter given more than 16 prefixes");
-        let count = prefixes.len().min(16);
+        debug_assert!(
+            prefixes.len() <= crate::MAX_PATTERNS,
+            "AVX-512 filter given {} prefixes, max is {}",
+            prefixes.len(),
+            crate::MAX_PATTERNS
+        );
+        let count = prefixes.len();
 
         // Zero-initialize the array safely to avoid UB from uninitialized padding
         // or array elements when `count` < 16.
         let mut patterns: [Avx512Pattern; 16] = unsafe { core::mem::zeroed() };
 
-        for (i, &slice) in prefixes.iter().take(16).enumerate() {
+        for (i, &slice) in prefixes.iter().take(crate::MAX_PATTERNS).enumerate() {
             let eval_len = slice.len().min(4);
             let mut arr = [0u8; 4];
             for j in 0..eval_len {

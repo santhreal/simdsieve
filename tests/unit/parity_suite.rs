@@ -5,4 +5,5 @@
     clippy::panic,
     clippy::manual_let_else
 )]
-mod regression;
+#[path = "../parity/mod.rs"]
+mod parity;

@@ -43,12 +43,31 @@ fn reference_scan(haystack: &[u8], patterns: &[&[u8]], case_insensitive: bool) -
 }
 
 fn assert_parity(haystack: &[u8], patterns: &[&[u8]], case_insensitive: bool, test_name: &str) {
-    let sieve = if case_insensitive {
+    let sieve_result = if case_insensitive {
         SimdSieve::new_case_insensitive(haystack, patterns)
     } else {
         SimdSieve::new(haystack, patterns)
-    }
-    .unwrap_or_else(|e| panic!("[{test_name}] construction failed: {e:?}"));
+    };
+
+    let sieve = match sieve_result {
+        Ok(s) => s,
+        Err(SimdSieveError::EmptyPatternSet) => {
+            panic!("[{test_name}] construction failed: empty pattern set provided")
+        }
+        Err(SimdSieveError::PatternLimitExceeded(c)) => {
+            panic!(
+                "[{test_name}] construction failed: provided {c} patterns, but max is 16"
+            )
+        }
+        Err(SimdSieveError::EmptyPattern { index }) => {
+            panic!(
+                "[{test_name}] construction failed: pattern at index {index} is empty"
+            )
+        }
+        Err(other) => {
+            panic!("[{test_name}] construction failed: {other:?}")
+        }
+    };
 
     let actual: Vec<usize> = sieve.collect();
     let expected = reference_scan(haystack, patterns, case_insensitive);
@@ -346,7 +365,10 @@ fn estimate_match_count_parity() {
     let haystack = b"abababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab";
     let count = SimdSieve::estimate_match_count(haystack, &[b"ab"], false);
     // estimate_match_count counts prefix hits in SIMD blocks only.
-    assert!(count > 0, "estimate_match_count should find prefix hits in block-processing region");
+    assert!(
+        count > 0,
+        "estimate_match_count should find prefix hits in block-processing region"
+    );
     assert!(
         count <= haystack.len() as u64,
         "estimate_match_count should not exceed haystack length"

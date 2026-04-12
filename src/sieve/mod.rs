@@ -47,6 +47,21 @@ impl<'a> SimdSieve<'a> {
     /// Use this for density estimation when deciding whether to use
     /// a more expensive verification algorithm.
     ///
+    /// # Behavior with >16 patterns
+    ///
+    /// If more than 16 patterns are provided, this function delegates to
+    /// [`MultiSieve`] and counts verified match positions in the first
+    /// 4 KB of the haystack. This ensures the function remains infallible
+    /// while still providing a useful density signal for large pattern sets.
+    ///
+    /// # 4 KB window cap
+    ///
+    /// To keep the call cheap on huge inputs, density estimation is
+    /// performed only on the first 4 096 bytes of `haystack`. If your
+    /// workload has density that changes dramatically after the header,
+    /// scan a representative slice manually instead of relying on this
+    /// coarse estimate.
+    ///
     /// # Notes
     ///
     /// This counts every position where the first 1–4 bytes of any pattern
@@ -58,10 +73,25 @@ impl<'a> SimdSieve<'a> {
         patterns: &[&'a [u8]],
         case_insensitive: bool,
     ) -> u64 {
+        if patterns.is_empty() {
+            return 0;
+        }
+
         // Density estimation only needs the first 4KB of haystack.
         // This is sufficient for the prefilter decision and avoids
         // scanning huge inputs for a coarse density score.
         let haystack = &haystack[..haystack.len().min(4096)];
+
+        // For pattern sets larger than a single sieve can hold, delegate to
+        // MultiSieve and count verified matches instead of raw prefix hits.
+        if patterns.len() > crate::MAX_PATTERNS {
+            let multi = if case_insensitive {
+                crate::MultiSieve::new_case_insensitive(haystack, patterns)
+            } else {
+                crate::MultiSieve::new(haystack, patterns)
+            };
+            return multi.map(|m| m.candidates().count() as u64).unwrap_or(0);
+        }
 
         let sieve_result = if case_insensitive {
             Self::new_case_insensitive(haystack, patterns)
@@ -85,7 +115,7 @@ impl<'a> SimdSieve<'a> {
                 sieve.next_mask_cache = 0;
             }
         }
-        
+
         while sieve.offset + sieve.max_len <= haystack.len() {
             let current_idx = sieve.offset;
             sieve.offset += 1;
@@ -93,13 +123,16 @@ impl<'a> SimdSieve<'a> {
             for p_idx in 0..sieve.pattern_count {
                 let vp = sieve.verification_patterns[p_idx];
                 let prefix_len = vp.len().min(4);
-                if (sieve.verifier)(&haystack[current_idx..current_idx + prefix_len], &vp[..prefix_len]) {
+                if (sieve.verifier)(
+                    &haystack[current_idx..current_idx + prefix_len],
+                    &vp[..prefix_len],
+                ) {
                     global_popcnt += 1;
                     break;
                 }
             }
         }
-        
+
         while sieve.offset <= haystack.len() {
             let current_idx = sieve.offset;
             sieve.offset += 1;
@@ -107,7 +140,12 @@ impl<'a> SimdSieve<'a> {
             for p_idx in 0..sieve.pattern_count {
                 let vp = sieve.verification_patterns[p_idx];
                 let prefix_len = vp.len().min(4);
-                if current_idx + prefix_len <= haystack.len() && (sieve.verifier)(&haystack[current_idx..current_idx + prefix_len], &vp[..prefix_len]) {
+                if current_idx + prefix_len <= haystack.len()
+                    && (sieve.verifier)(
+                        &haystack[current_idx..current_idx + prefix_len],
+                        &vp[..prefix_len],
+                    )
+                {
                     global_popcnt += 1;
                     break;
                 }
@@ -198,7 +236,29 @@ mod sieve_unit_tests {
         let haystack = vec![b'x'; 128];
         let count = SimdSieve::estimate_match_count(&haystack, patterns, false);
         // estimate_match_count is infallible; just verify it returns a finite value.
-        assert!(count <= haystack.len() as u64, "estimate should not exceed haystack length");
+        assert!(
+            count <= haystack.len() as u64,
+            "estimate should not exceed haystack length"
+        );
+    }
+
+    #[test]
+    fn estimate_match_count_with_many_patterns() {
+        // Create 20 distinct single-byte patterns.
+        let patterns: Vec<Vec<u8>> = (0..20).map(|i| vec![b'a' + i]).collect();
+        let pattern_refs: Vec<&[u8]> = patterns.iter().map(Vec::as_slice).collect();
+
+        let mut haystack = vec![b'x'; 128];
+        haystack[10] = b'a';
+        haystack[20] = b'b';
+        haystack[30] = b'c';
+
+        let count = SimdSieve::estimate_match_count(&haystack, &pattern_refs, false);
+        // MultiSieve delegation should still find the three matches.
+        assert!(
+            count >= 3,
+            "estimate_match_count should delegate to MultiSieve and find matches"
+        );
     }
 
     #[test]

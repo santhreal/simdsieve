@@ -30,7 +30,7 @@ impl<'a> SimdSieve<'a> {
         if patterns.is_empty() {
             return Err(SimdSieveError::EmptyPatternSet);
         }
-        if patterns.len() > 16 {
+        if patterns.len() > crate::MAX_PATTERNS {
             return Err(SimdSieveError::PatternLimitExceeded(patterns.len()));
         }
 

@@ -73,8 +73,8 @@ pub fn fold_slice(data: &mut [u8]) {
 /// assert!(!verify_exact(b"needle", b"noodle"));
 /// ```
 #[inline]
-pub fn verify_exact(pattern: &[u8], haystack: &[u8]) -> bool {
-    pattern == haystack
+pub fn verify_exact(left: &[u8], right: &[u8]) -> bool {
+    left == right
 }
 
 /// Case-insensitive comparison by folding both sides with ASCII-only logic.

@@ -2,7 +2,7 @@
 name = "simdsieve"
 version = "0.1.1"
 edition = "2024"
-rust-version = "1.85"
+rust-version = "1.89"
 description = "SIMD-accelerated byte pattern pre-filtering with AVX-512, AVX2, NEON, and scalar fallback"
 license = "MIT"
 authors = ["Corum Collective LLC <contact@santh.io>"]
@@ -22,11 +22,6 @@ rand = "0.8"
 libc = "0.2"
 proptest = "1"
 
-[lints.clippy]
-todo = "deny"
-unimplemented = "deny"
-panic = "deny"
-pedantic = { level = "warn", priority = -1 }
 
 [[bench]]
 name = "throughput"
@@ -35,3 +30,136 @@ harness = false
 [[bench]]
 name = "legendary_bench"
 harness = false
+
+[[test]]
+name = "unit_backend_parity"
+path = "tests/unit/backend_parity.rs"
+
+[[test]]
+name = "unit_concurrency_suite"
+path = "tests/unit/concurrency_suite.rs"
+
+[[test]]
+name = "unit_forge_million_fuzzer"
+path = "tests/unit/forge_million_fuzzer.rs"
+
+[[test]]
+name = "unit_forge_tlb_hardware"
+path = "tests/unit/forge_tlb_hardware.rs"
+
+[[test]]
+name = "unit_hardening"
+path = "tests/unit/hardening.rs"
+
+[[test]]
+name = "unit_kimi_audit"
+path = "tests/unit/kimi_audit.rs"
+
+[[test]]
+name = "unit_legendary"
+path = "tests/unit/legendary.rs"
+
+[[test]]
+name = "unit_legendary_2"
+path = "tests/unit/legendary_2.rs"
+
+[[test]]
+name = "unit_legendary_jules"
+path = "tests/unit/legendary_jules.rs"
+
+[[test]]
+name = "unit_mass_simd_samples"
+path = "tests/unit/mass_simd_samples.rs"
+
+[[test]]
+name = "unit"
+path = "tests/unit/mod.rs"
+
+[[test]]
+name = "unit_parity_suite"
+path = "tests/unit/parity_suite.rs"
+
+[[test]]
+name = "unit_regression_suite"
+path = "tests/unit/regression_suite.rs"
+
+[[test]]
+name = "unit_structural_suite"
+path = "tests/unit/structural_suite.rs"
+
+[[test]]
+name = "unit_test_avx2_boundary"
+path = "tests/unit/test_avx2_boundary.rs"
+
+[[test]]
+name = "unit_test_impossible_conditions"
+path = "tests/unit/test_impossible_conditions.rs"
+
+[[test]]
+name = "unit_test_legendary_concurrency"
+path = "tests/unit/test_legendary_concurrency.rs"
+
+[[test]]
+name = "unit_test_legendary_fault"
+path = "tests/unit/test_legendary_fault.rs"
+
+[[test]]
+name = "unit_test_legendary_gap"
+path = "tests/unit/test_legendary_gap.rs"
+
+[[test]]
+name = "unit_test_legendary_overflow"
+path = "tests/unit/test_legendary_overflow.rs"
+
+[[test]]
+name = "unit_test_legendary_unit"
+path = "tests/unit/test_legendary_unit.rs"
+
+[[test]]
+name = "adversarial_adversarial_exhaustive"
+path = "tests/adversarial/adversarial_exhaustive.rs"
+
+[[test]]
+name = "adversarial_adversarial_exhaustive_2"
+path = "tests/adversarial/adversarial_exhaustive_2.rs"
+
+[[test]]
+name = "adversarial_adversarial_simd"
+path = "tests/adversarial/adversarial_simd.rs"
+
+[[test]]
+name = "adversarial_adversarial_suite"
+path = "tests/adversarial/adversarial_suite.rs"
+
+[[test]]
+name = "adversarial_break_it"
+path = "tests/adversarial/break_it.rs"
+
+[[test]]
+name = "adversarial"
+path = "tests/adversarial/mod.rs"
+
+[[test]]
+name = "adversarial_test_legendary_adversarial"
+path = "tests/adversarial/test_legendary_adversarial.rs"
+
+[[test]]
+name = "integration"
+path = "tests/integration/mod.rs"
+
+[[test]]
+name = "integration_multi_integration"
+path = "tests/integration/multi_integration.rs"
+
+[[test]]
+name = "property_legendary_proptest"
+path = "tests/property/legendary_proptest.rs"
+
+[[test]]
+name = "property"
+path = "tests/property/mod.rs"
+
+[[test]]
+name = "property_test_legendary_property"
+path = "tests/property/test_legendary_property.rs"
+

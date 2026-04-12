@@ -5,4 +5,5 @@
     clippy::panic,
     clippy::manual_let_else
 )]
-mod parity;
+#[path = "../structural/mod.rs"]
+mod structural;

@@ -5,4 +5,5 @@
     clippy::panic,
     clippy::manual_let_else
 )]
-mod structural;
+#[path = "mod.rs"]
+mod adversarial;

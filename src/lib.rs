@@ -1,3 +1,22 @@
+#![warn(missing_docs, clippy::pedantic)]
+#![allow(
+    clippy::module_name_repetitions,
+    clippy::must_use_candidate,
+    clippy::missing_errors_doc,
+)]
+#![forbid(unsafe_op_in_unsafe_fn)]
+#![cfg_attr(not(test), deny(clippy::unwrap_used, clippy::expect_used))]
+#![cfg_attr(
+    test,
+    allow(
+        clippy::cast_possible_truncation,
+        clippy::cast_sign_loss,
+        clippy::unreadable_literal,
+        clippy::panic,
+        clippy::manual_let_else
+    )
+)]
+
 //! SIMD-accelerated byte pattern pre-filtering.
 //!
 //! `simdsieve` scans a byte haystack for multiple fixed-string patterns at
@@ -45,21 +64,6 @@
 //! assert_eq!(matches, vec![0, 4]);
 //! ```
 
-#![warn(missing_docs, clippy::pedantic)]
-#![forbid(unsafe_op_in_unsafe_fn)]
-#![cfg_attr(not(test), deny(clippy::unwrap_used, clippy::expect_used))]
-#![cfg_attr(
-    test,
-    allow(
-        clippy::cast_possible_truncation,
-        clippy::cast_sign_loss,
-        clippy::unreadable_literal,
-        clippy::panic,
-        clippy::manual_let_else
-    )
-)]
-#![allow(clippy::must_use_candidate, clippy::module_name_repetitions)]
-
 pub mod error;
 pub mod fold;
 pub mod multi;
@@ -77,6 +81,9 @@ mod avx512;
 #[cfg(target_arch = "aarch64")]
 #[allow(unsafe_code)]
 mod neon;
+
+/// Maximum number of patterns a single [`SimdSieve`] can search simultaneously.
+pub(crate) const MAX_PATTERNS: usize = 16;
 
 pub use error::{Result, SimdSieveError};
 pub use multi::MultiSieve;

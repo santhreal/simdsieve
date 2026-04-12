@@ -5,4 +5,5 @@
     clippy::panic,
     clippy::manual_let_else
 )]
-mod adversarial;
+#[path = "../regression/mod.rs"]
+mod regression;
