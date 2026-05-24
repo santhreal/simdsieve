@@ -95,6 +95,10 @@ impl<'a> SimdSieve<'a> {
             }));
         }
 
+        // unreachable on aarch64 (the return above always fires), but
+        // this is the scalar fallback on every other target. Suppress
+        // the unreachable-code lint that only fires on aarch64.
+        #[allow(unreachable_code)]
         HardwareTier::Scalar(Box::new(ScalarFilter::new(
             filter_patterns,
             case_insensitive,
