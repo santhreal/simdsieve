@@ -52,9 +52,7 @@ impl HardwareTier {
 /// Macro for the dual-pump main loop shared by AVX-512, AVX2, and NEON.
 macro_rules! dual_pump_main {
     ($self:ident, $check:expr, $block_size:literal, $half_stride:literal) => {
-        while $self.offset + $block_size + $self.max_len.saturating_sub(1)
-            <= $self.haystack.len()
-        {
+        while $self.offset + $block_size + $self.max_len.saturating_sub(1) <= $self.haystack.len() {
             let chunk = &$self.haystack
                 [$self.offset..$self.offset + $block_size + $self.max_len.saturating_sub(1)];
             let (mask_a, mask_b) = $check(chunk);
@@ -79,9 +77,7 @@ macro_rules! dual_pump_main {
 /// Macro for the single-pump main loop shared by scalar and SIMD tail blocks.
 macro_rules! single_pump_block {
     ($self:ident, $check:expr, $block_size:literal) => {
-        if $self.offset + $block_size + $self.max_len.saturating_sub(1)
-            <= $self.haystack.len()
-        {
+        if $self.offset + $block_size + $self.max_len.saturating_sub(1) <= $self.haystack.len() {
             let chunk = &$self.haystack
                 [$self.offset..$self.offset + $block_size + $self.max_len.saturating_sub(1)];
             let mask = $check(chunk);
@@ -106,42 +102,59 @@ impl SimdSieve<'_> {
         match &self.tier {
             #[cfg(target_arch = "x86_64")]
             HardwareTier::Avx512(filter) => {
-                dual_pump_main!(self, |chunk| unsafe {
-                    filter.check_128byte_block(chunk)
-                }, 128, 64);
+                dual_pump_main!(
+                    self,
+                    |chunk| unsafe { filter.check_128byte_block(chunk) },
+                    128,
+                    64
+                );
 
-                single_pump_block!(self, |chunk| unsafe {
-                    filter.check_64byte_block(chunk)
-                }, 64);
+                single_pump_block!(
+                    self,
+                    |chunk| unsafe { filter.check_64byte_block(chunk) },
+                    64
+                );
             }
             #[cfg(target_arch = "x86_64")]
             HardwareTier::Avx2(filter) => {
-                dual_pump_main!(self, |chunk| {
-                    let (a, b) = unsafe { filter.check_64byte_block(chunk) };
-                    (u64::from(a), u64::from(b))
-                }, 64, 32);
+                dual_pump_main!(
+                    self,
+                    |chunk| {
+                        let (a, b) = unsafe { filter.check_64byte_block(chunk) };
+                        (u64::from(a), u64::from(b))
+                    },
+                    64,
+                    32
+                );
 
-                single_pump_block!(self, |chunk| u64::from(unsafe {
-                    filter.check_32byte_block(chunk)
-                }), 32);
+                single_pump_block!(
+                    self,
+                    |chunk| u64::from(unsafe { filter.check_32byte_block(chunk) }),
+                    32
+                );
             }
             #[cfg(target_arch = "aarch64")]
             HardwareTier::Neon(filter) => {
-                dual_pump_main!(self, |chunk| {
-                    let (a, b) = unsafe { filter.check_64byte_block(chunk) };
-                    (u64::from(a), u64::from(b))
-                }, 64, 32);
+                dual_pump_main!(
+                    self,
+                    |chunk| {
+                        let (a, b) = unsafe { filter.check_64byte_block(chunk) };
+                        (u64::from(a), u64::from(b))
+                    },
+                    64,
+                    32
+                );
 
-                single_pump_block!(self, |chunk| u64::from(unsafe {
-                    filter.check_32byte_block(chunk)
-                }), 32);
+                single_pump_block!(
+                    self,
+                    |chunk| u64::from(unsafe { filter.check_32byte_block(chunk) }),
+                    32
+                );
             }
             HardwareTier::Scalar(filter) => {
-                while self.offset + 64 + self.max_len.saturating_sub(1)
-                    <= self.haystack.len()
-                {
-                    let chunk = &self.haystack[self.offset
-                        ..self.offset + 64 + self.max_len.saturating_sub(1)];
+                while self.offset + 64 + self.max_len.saturating_sub(1) <= self.haystack.len() {
+                    let chunk = &self.haystack
+                        [self.offset..self.offset + 64 + self.max_len.saturating_sub(1)];
                     let mask = filter.check_64byte_block(chunk);
 
                     let base = self.offset;

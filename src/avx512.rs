@@ -1,9 +1,6 @@
 //! AVX-512 intrinsics for 128-byte dual-pumped multi-pattern prefix matching.
 //!
-#![allow(
-    clippy::similar_names,
-    clippy::cast_possible_wrap
-)]
+#![allow(clippy::similar_names, clippy::cast_possible_wrap)]
 //! This module implements the AVX-512 (512-bit) backend for `x86_64` targets.
 //! It processes 128-byte blocks using two 64-byte "pumps" to maximize
 //! instruction-level parallelism.

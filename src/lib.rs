@@ -2,7 +2,7 @@
 #![allow(
     clippy::module_name_repetitions,
     clippy::must_use_candidate,
-    clippy::missing_errors_doc,
+    clippy::missing_errors_doc
 )]
 #![forbid(unsafe_op_in_unsafe_fn)]
 #![cfg_attr(not(test), deny(clippy::unwrap_used, clippy::expect_used))]

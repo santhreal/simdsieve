@@ -90,7 +90,7 @@ impl<'a> SimdSieve<'a> {
             } else {
                 crate::MultiSieve::new(haystack, patterns)
             };
-            return multi.map(|m| m.candidates().count() as u64).unwrap_or(0);
+            return multi.map_or(0, |m| m.candidates().count() as u64);
         }
 
         let sieve_result = if case_insensitive {

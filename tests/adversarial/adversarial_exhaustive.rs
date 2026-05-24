@@ -333,7 +333,7 @@ fn create_aligned_haystack(size: usize, align: usize) -> Vec<u8> {
     let v = vec![0u8; size + align * 4];
     let ptr = v.as_ptr() as usize;
     // Find next aligned address
-    let aligned_ptr = if ptr % align == 0 {
+    let aligned_ptr = if ptr.is_multiple_of(align) {
         ptr
     } else {
         ptr + (align - ptr % align)

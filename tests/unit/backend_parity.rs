@@ -55,14 +55,10 @@ fn assert_parity(haystack: &[u8], patterns: &[&[u8]], case_insensitive: bool, te
             panic!("[{test_name}] construction failed: empty pattern set provided")
         }
         Err(SimdSieveError::PatternLimitExceeded(c)) => {
-            panic!(
-                "[{test_name}] construction failed: provided {c} patterns, but max is 16"
-            )
+            panic!("[{test_name}] construction failed: provided {c} patterns, but max is 16")
         }
         Err(SimdSieveError::EmptyPattern { index }) => {
-            panic!(
-                "[{test_name}] construction failed: pattern at index {index} is empty"
-            )
+            panic!("[{test_name}] construction failed: pattern at index {index} is empty")
         }
         Err(other) => {
             panic!("[{test_name}] construction failed: {other:?}")
