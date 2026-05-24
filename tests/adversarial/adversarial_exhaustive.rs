@@ -128,7 +128,7 @@ fn nine_patterns_exceeds_single_sieve() {
         b"ABC", b"DEF", b"GHI", b"JKL", b"MNO", b"PQR", b"STU", b"VWX", b"YZ",
     ];
     let result = SimdSieve::new(haystack, patterns);
-    assert!(result.is_ok(), "9 patterns should succeed (limit is 16)",);
+    assert!(result.is_ok(), "9 patterns should succeed (limit is 16)");
     assert_matches_reference(
         haystack,
         patterns,
