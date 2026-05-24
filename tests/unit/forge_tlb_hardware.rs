@@ -5,6 +5,10 @@
     clippy::panic,
     clippy::manual_let_else
 )]
+// POSIX mmap/munmap aren't on Windows. The mmap-based TLB-fault
+// fixture only compiles on unix; on Windows the entire test file
+// becomes a no-op.
+#![cfg(all(unix, not(miri)))]
 use libc::{MAP_ANON, MAP_PRIVATE, PROT_READ, PROT_WRITE, mmap, munmap};
 use simdsieve::SimdSieve;
 use std::ptr;

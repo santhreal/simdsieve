@@ -5,7 +5,9 @@
     clippy::panic,
     clippy::manual_let_else
 )]
-#[cfg(unix)]
+// Miri can't run libc::mprotect (foreign function); skip the whole
+// fixture under Miri.
+#![cfg(all(unix, not(miri)))]
 use simdsieve::SimdSieve;
 #[cfg(unix)]
 use std::ptr;
