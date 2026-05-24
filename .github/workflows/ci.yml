@@ -234,10 +234,16 @@ jobs:
         with:
           components: miri
 
-      - name: Run Miri tests
-        run: cargo miri test
+      # Miri can model safe Rust but cannot interpret SIMD intrinsics
+      # (AVX-2 / AVX-512 / NEON) or libc::mmap/mprotect; the
+      # integration suite uses both. Restrict Miri to the lib unit
+      # tests; SIMD correctness is covered separately by the
+      # Backend-specific and NEON-via-QEMU jobs.
+      - name: Run Miri tests (lib only)
+        run: cargo miri test --lib
         env:
           MIRIFLAGS: -Zmiri-strict-provenance
+        timeout-minutes: 30
 
   # Coverage (optional, runs on stable)
   coverage:
