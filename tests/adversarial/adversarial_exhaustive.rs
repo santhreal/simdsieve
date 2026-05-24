@@ -329,29 +329,39 @@ fn input_size_1mb() {
 // =============================================================================
 
 fn create_aligned_haystack(size: usize, align: usize) -> Vec<u8> {
-    // Allocate extra space and find aligned position within it
-    let v = vec![0u8; size + align * 4];
-    let ptr = v.as_ptr() as usize;
-    // Find next aligned address
-    let aligned_ptr = if ptr.is_multiple_of(align) {
-        ptr
-    } else {
-        ptr + (align - ptr % align)
-    };
-    let offset = aligned_ptr - ptr;
-    // Create a new vec with the aligned slice
-    let aligned_slice = &v[offset..offset + size];
-    let result = aligned_slice.to_vec();
-    // Verify alignment
-    assert_eq!(
-        result.as_ptr() as usize % align,
-        0,
-        "alignment failed: ptr={:p}, align={}, ptr%align={}",
-        result.as_ptr(),
-        align,
-        result.as_ptr() as usize % align
+    // Over-allocate, slice to an aligned window, then copy into a
+    // fresh Vec via `extend_from_slice` to grow capacity to `size`
+    // exactly. The result's pointer alignment depends on the
+    // allocator, so we ASSERT alignment and retry up to a few
+    // times — and if it still doesn't land, panic with a clear
+    // message instead of silently producing misaligned data.
+    //
+    // The previous implementation relied on `.to_vec()` preserving
+    // the source's alignment, which is an allocator-quirk that held
+    // on Linux glibc but not on Windows msvcrt — Windows nightly CI
+    // was failing on `alignment_32_bytes_aligned` as a result.
+    for _attempt in 0..16 {
+        let v = vec![0u8; size + align * 4];
+        let ptr = v.as_ptr() as usize;
+        let aligned_ptr = if ptr.is_multiple_of(align) {
+            ptr
+        } else {
+            ptr + (align - ptr % align)
+        };
+        let offset = aligned_ptr - ptr;
+        let aligned_slice = &v[offset..offset + size];
+        let mut result = Vec::with_capacity(size);
+        result.extend_from_slice(aligned_slice);
+        if result.as_ptr() as usize % align == 0 {
+            return result;
+        }
+    }
+    panic!(
+        "could not obtain a {}-byte-aligned Vec<u8> of size {} after 16 attempts \
+         — allocator does not provide sufficient alignment for this test on this \
+         platform; skip with `#[cfg(not(target_os = \"windows\"))]` if needed",
+        align, size
     );
-    result
 }
 
 #[test]
