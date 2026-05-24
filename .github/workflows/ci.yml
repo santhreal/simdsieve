@@ -248,15 +248,22 @@ jobs:
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
+        with:
+          components: llvm-tools-preview
 
-      - name: Install tarpaulin
-        run: cargo install cargo-tarpaulin
+      # cargo-llvm-cov instead of tarpaulin — tarpaulin's ptrace-based
+      # instrumentation crashes on the AVX-2 / AVX-512 / NEON intrinsics
+      # this crate uses, surfacing as `SIGSEGV in <unknown>` mid-run.
+      # llvm-cov uses source-based coverage (no ptrace) and handles
+      # SIMD-heavy unsafe code cleanly.
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
 
       - name: Generate coverage
-        run: cargo tarpaulin --all-targets --out Xml
+        run: cargo llvm-cov --all-targets --workspace --codecov --output-path codecov.json
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
-          files: ./cobertura.xml
+          files: ./codecov.json
           fail_ci_if_error: false
