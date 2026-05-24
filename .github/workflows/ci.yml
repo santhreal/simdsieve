@@ -114,7 +114,7 @@ jobs:
         run: |
           rustup target add aarch64-unknown-linux-gnu
           sudo apt-get update
-          sudo apt-get install -y qemu-user gcc-aarch64-linux-gnu
+          sudo apt-get install -y qemu-user gcc-aarch64-linux-gnu libc6-arm64-cross
 
       - name: Cache cargo
         uses: actions/cache@v3
@@ -130,10 +130,14 @@ jobs:
       - name: Configure cargo for cross compilation
         run: |
           mkdir -p .cargo
+          # qemu-aarch64 needs -L pointing at the aarch64 dynamic linker
+          # (/usr/aarch64-linux-gnu/lib/ld-linux-aarch64.so.1) shipped by
+          # libc6-arm64-cross. Without -L it errors with
+          # "Could not open '/lib/ld-linux-aarch64.so.1': No such file".
           cat > .cargo/config.toml <<EOF
           [target.aarch64-unknown-linux-gnu]
           linker = "aarch64-linux-gnu-gcc"
-          runner = "qemu-aarch64"
+          runner = "qemu-aarch64 -L /usr/aarch64-linux-gnu"
           EOF
 
       - name: Run tests under QEMU aarch64
