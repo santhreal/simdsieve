@@ -50,7 +50,7 @@ impl<'a> SimdSieve<'a> {
     /// # Behavior with >16 patterns
     ///
     /// If more than 16 patterns are provided, this function delegates to
-    /// [`MultiSieve`] and counts verified match positions in the first
+    /// [`crate::MultiSieve`] and counts verified match positions in the first
     /// 4 KB of the haystack. This ensures the function remains infallible
     /// while still providing a useful density signal for large pattern sets.
     ///
