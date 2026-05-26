@@ -2,7 +2,7 @@
 name = "simdsieve"
 version = "0.1.1"
 edition = "2024"
-rust-version = "1.89"
+rust-version = "1.88"
 description = "SIMD-accelerated byte pattern pre-filtering with AVX-512, AVX2, NEON, and scalar fallback"
 license = "MIT"
 authors = ["Corum Collective LLC <contact@santh.io>"]
@@ -162,4 +162,16 @@ path = "tests/property/mod.rs"
 [[test]]
 name = "property_test_legendary_property"
 path = "tests/property/test_legendary_property.rs"
+
+[[test]]
+name = "campaign_s_perf_match"
+path = "tests/campaign_s_perf_match.rs"
+
+[[test]]
+name = "campaign_s_proptest_03"
+path = "tests/campaign_s_proptest_03.rs"
+
+[[test]]
+name = "campaign_s_proptest_03_ext"
+path = "tests/campaign_s_proptest_03_ext.rs"
 
