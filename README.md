@@ -1,5 +1,7 @@
 # simdsieve
 
+Part of [Santh](https://santh.dev) - open source Rust security and infrastructure tooling. Follow [@SanthProject](https://x.com/SanthProject) on X.
+
 [![Crates.io](https://img.shields.io/crates/v/simdsieve)](https://crates.io/crates/simdsieve)
 [![Docs.rs](https://docs.rs/simdsieve/badge.svg)](https://docs.rs/simdsieve)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
