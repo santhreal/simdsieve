@@ -30,7 +30,9 @@ campaign_find!(c09, b"zzzz", b"z", vec![0, 1, 2, 3]);
 #[test]
 fn campaign_multi_pattern_union() {
     let hay = b"alpha beta gamma";
-    let got: Vec<usize> = SimdSieve::new(hay, &[b"alpha", b"gamma"]).unwrap().collect();
+    let got: Vec<usize> = SimdSieve::new(hay, &[b"alpha", b"gamma"])
+        .unwrap()
+        .collect();
     assert!(got.contains(&0));
     assert!(got.contains(&11));
 }
@@ -117,7 +119,9 @@ fn campaign_prefix_at_zero() {
 
 #[test]
 fn campaign_suffix_only() {
-    let got: Vec<usize> = SimdSieve::new(b"endsuffix", &[b"suffix"]).unwrap().collect();
+    let got: Vec<usize> = SimdSieve::new(b"endsuffix", &[b"suffix"])
+        .unwrap()
+        .collect();
     assert_eq!(got, vec![3]);
 }
 
@@ -183,7 +187,9 @@ fn campaign_elf_magic() {
 #[test]
 fn campaign_zip_local_header() {
     let hay = b"\x50\x4b\x03\x04file";
-    let got: Vec<usize> = SimdSieve::new(hay, &[b"\x50\x4b\x03\x04"]).unwrap().collect();
+    let got: Vec<usize> = SimdSieve::new(hay, &[b"\x50\x4b\x03\x04"])
+        .unwrap()
+        .collect();
     assert_eq!(got, vec![0]);
 }
 

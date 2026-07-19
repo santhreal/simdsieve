@@ -287,11 +287,15 @@ mod sieve_unit_tests {
     fn estimate_match_count_fails_safe_on_invalid_many_pattern_set() {
         // Same fail-safe contract on the MultiSieve delegation path (> MAX_PATTERNS).
         let haystack = vec![b'x'; 100];
-        let mut patterns: Vec<&[u8]> =
-            (0..crate::MAX_PATTERNS + 1).map(|_| b"ab".as_slice()).collect();
+        let mut patterns: Vec<&[u8]> = (0..=crate::MAX_PATTERNS)
+            .map(|_| b"ab".as_slice())
+            .collect();
         patterns.push(b""); // empty pattern -> construction error
         let count = SimdSieve::estimate_match_count(&haystack, &patterns, false);
-        assert_eq!(count, 100, "invalid many-pattern set must return max density, not 0");
+        assert_eq!(
+            count, 100,
+            "invalid many-pattern set must return max density, not 0"
+        );
     }
 
     #[test]

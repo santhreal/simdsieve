@@ -65,17 +65,17 @@ simd_cases! {
     p01_short_hay_brute_parity => |haystack, pattern| {
         let pat = pattern.as_slice();
         if haystack.len() <= 128 {
-            let _ = collect_matches(&haystack, &[pat])?;
+            collect_matches(&haystack, &[pat])?;
         }
     },
-    p02_empty_pattern_list_err => |haystack, pattern| {
+    p02_empty_pattern_list_err => |haystack, _pattern| {
         let _ = SimdSieve::new(&haystack, &[]);
     },
     p03_pattern_longer_than_hay => |haystack, pattern| {
-        if pattern.len() > haystack.len() {
-            if let Ok(sieve) = SimdSieve::new(&haystack, &[&pattern]) {
-                prop_assert_eq!(sieve.count(), 0);
-            }
+        if pattern.len() > haystack.len()
+            && let Ok(sieve) = SimdSieve::new(&haystack, &[&pattern])
+        {
+            prop_assert_eq!(sieve.count(), 0);
         }
     },
     p04_results_sorted => |haystack, pattern| {
@@ -95,7 +95,7 @@ simd_cases! {
             let _ = SimdSieve::new(&haystack, &[&pattern])?;
         }
     },
-    p06_haystack_empty => |haystack, pattern| {
+    p06_haystack_empty => |_haystack, pattern| {
         let _ = SimdSieve::new(&[], &[&pattern]);
     },
     p07_duplicate_pattern_ok => |haystack, pattern| {
@@ -127,4 +127,3 @@ simd_cases! {
         }
     },
 }
-

@@ -1,4 +1,6 @@
 #![warn(missing_docs, clippy::pedantic)]
+// Runtime feature detection; MSRV contract applies to portable fallback paths.
+#![allow(clippy::incompatible_msrv)]
 #![allow(
     clippy::module_name_repetitions,
     clippy::must_use_candidate,

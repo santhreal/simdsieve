@@ -104,10 +104,11 @@ fn avx2_case_insensitive_matches_scalar() {
 /// checked against the scalar oracle for both the 64- and 32-byte entry points.
 #[test]
 fn avx2_hot_prefix_set_matches_scalar_randomized() {
+    use rand::{Rng, SeedableRng, rngs::StdRng};
+
     if !std::is_x86_feature_detected!("avx2") {
         return;
     }
-    use rand::{Rng, SeedableRng, rngs::StdRng};
 
     let patterns: &[&[u8]] = &[
         b"ghp_",
@@ -128,7 +129,7 @@ fn avx2_hot_prefix_set_matches_scalar_randomized() {
         let alphabet = b"AKISGghpsknxob-0123_qcrojzZ aA";
         for _ in 0..20_000 {
             let mut block = [0u8; 68];
-            for b in block.iter_mut() {
+            for b in &mut block {
                 *b = alphabet[rng.gen_range(0..alphabet.len())];
             }
             if rng.gen_bool(0.5) {

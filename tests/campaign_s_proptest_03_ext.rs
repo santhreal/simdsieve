@@ -216,12 +216,12 @@ proptest! {
         haystack in prop::collection::vec(any::<u8>(), 0..32),
         pattern in prop::collection::vec(any::<u8>(), 1..4),
     ) {
-        if !pattern.is_empty() {
-        if let Ok(sieve) = SimdSieve::new(&haystack, &[&pattern]) {
+        if !pattern.is_empty()
+            && let Ok(sieve) = SimdSieve::new(&haystack, &[&pattern])
+        {
             for pos in sieve {
                 prop_assert!(haystack[pos..].starts_with(&pattern));
             }
-        }
         }
     }
 }
