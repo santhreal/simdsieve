@@ -13,7 +13,9 @@ fn test_simd_scalar_mask_parity() {
         let haystack = vec![byte; 256];
         let pattern = [byte];
 
-        let result_sieve: Vec<_> = SimdSieve::new(&haystack, &[&pattern]).unwrap().collect();
+        let result_sieve: Vec<_> = SimdSieve::new(&haystack, &[pattern.as_slice()])
+            .unwrap()
+            .collect();
         let result_naive: Vec<_> = (0..256).collect();
 
         assert_eq!(result_sieve, result_naive, "Parity failed for byte {byte}");
@@ -25,10 +27,10 @@ fn estimate_match_count_greater_than_4kb() {
     let mut haystack = vec![0u8; 8192];
     haystack[0..4096].fill(b'a');
     haystack[4096..8192].fill(b'a'); // Fill rest as well
-    let pattern = [b'a'];
+    let pattern = b"a";
 
     // The density score only evaluates up to 4096 bytes.
-    let count = SimdSieve::estimate_match_count(&haystack, &[&pattern], false);
+    let count = SimdSieve::estimate_match_count(&haystack, &[pattern.as_slice()], false);
     // Since pattern is 1 byte, it checks up to 4096 bytes.
     assert!(
         count <= 4096,
@@ -39,10 +41,12 @@ fn estimate_match_count_greater_than_4kb() {
 #[test]
 fn prefetch_out_of_bounds_tiny_haystack() {
     let haystack = vec![b'x'; 100];
-    let pattern = [b'y'];
+    let pattern = b"y";
 
     // Should not panic or out of bounds when prefetching
-    let results: Vec<_> = SimdSieve::new(&haystack, &[&pattern]).unwrap().collect();
+    let results: Vec<_> = SimdSieve::new(&haystack, &[pattern.as_slice()])
+        .unwrap()
+        .collect();
     assert!(results.is_empty());
 }
 

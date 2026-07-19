@@ -291,7 +291,7 @@ mod tests {
         let pattern_refs = build_refs(&owned_patterns);
         let haystack = owned_patterns
             .iter()
-            .flat_map(|pattern| pattern.iter().copied().chain([b'|']))
+            .flat_map(|pattern| pattern.iter().copied().chain(*b"|"))
             .collect::<Vec<u8>>();
 
         let actual: Vec<usize> = MultiSieve::new(&haystack, &pattern_refs)

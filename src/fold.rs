@@ -119,7 +119,7 @@ mod tests {
             assert_eq!(fold_byte(c), c);
         }
 
-        for c in [b'!', b'-', b'/', b':', b'`', b'{', b'~'] {
+        for c in *b"!-/:`{~" {
             assert_eq!(fold_byte(c), c);
         }
     }
