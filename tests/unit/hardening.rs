@@ -16,7 +16,7 @@ use rand::{Rng, RngCore, SeedableRng};
 use simdsieve::SimdSieve;
 
 // =============================================================================
-// Reference implementation — brute-force linear scan
+// Reference implementation, brute-force linear scan
 // =============================================================================
 
 /// Returns every offset where at least one pattern matches exactly.
@@ -138,7 +138,7 @@ fn max_patterns_8_simultaneous() {
 #[test]
 fn pattern_limit_exceeded_returns_error() {
     let haystack = b"test";
-    // Limit is 16 patterns — 17 should trigger the error.
+    // Limit is 16 patterns: 17 should trigger the error.
     let patterns: Vec<&[u8]> = (0..17).map(|_| b"x" as &[u8]).collect();
     let result = SimdSieve::new(haystack, &patterns);
     assert!(
@@ -357,7 +357,7 @@ fn haystack_shorter_than_pattern() {
     // No match possible since haystack < pattern
     let expected = reference_scan(b"ab", &[b"abcde"], false);
     assert!(expected.is_empty());
-    // Sieve may yield false positives from prefix matching — that's OK
+    // Sieve may yield false positives from prefix matching, that's OK
     let _ = hits;
 }
 

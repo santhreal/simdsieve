@@ -19,7 +19,7 @@
 use simdsieve::SimdSieve;
 
 // =============================================================================
-// Reference Implementation — Brute-force Linear Scan
+// Reference Implementation: Brute-force Linear Scan
 // =============================================================================
 
 /// Returns every offset where at least one pattern matches exactly.
@@ -107,7 +107,7 @@ fn fallback_chain_works() {
 }
 
 // =============================================================================
-// Test Group 6: Adversarial Inputs — All Byte Values
+// Test Group 6: Adversarial Inputs: All Byte Values
 // =============================================================================
 
 #[test]

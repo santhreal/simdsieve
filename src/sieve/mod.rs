@@ -43,7 +43,7 @@ impl<'a> SimdSieve<'a> {
     /// Counts total prefix-hit positions without full verification.
     ///
     /// This is faster than collecting the iterator because it skips
-    /// full-length verification—it counts raw SIMD bitmask popcount.
+    /// full-length verification: it counts raw SIMD bitmask popcount.
     /// Use this for density estimation when deciding whether to use
     /// a more expensive verification algorithm.
     ///
@@ -90,7 +90,10 @@ impl<'a> SimdSieve<'a> {
             } else {
                 crate::MultiSieve::new(haystack, patterns)
             };
-            return multi.map_or(0, |m| m.candidates().count() as u64);
+            return match multi {
+                Ok(m) => m.candidates().count() as u64,
+                Err(error) => fail_safe_density(haystack, &error),
+            };
         }
 
         let sieve_result = if case_insensitive {
@@ -99,8 +102,9 @@ impl<'a> SimdSieve<'a> {
             Self::new(haystack, patterns)
         };
 
-        let Ok(mut sieve) = sieve_result else {
-            return 0;
+        let mut sieve = match sieve_result {
+            Ok(sieve) => sieve,
+            Err(error) => return fail_safe_density(haystack, &error),
         };
 
         let mut global_popcnt: u64 = 0;
@@ -133,7 +137,11 @@ impl<'a> SimdSieve<'a> {
             }
         }
 
-        while sieve.offset <= haystack.len() {
+        // `<` (not `<=`): at current_idx == haystack.len() the guard
+        // `current_idx + prefix_len <= haystack.len()` is always false for the
+        // non-empty patterns this sieve accepts (prefix_len >= 1), so the final
+        // iteration can never increment the count.
+        while sieve.offset < haystack.len() {
             let current_idx = sieve.offset;
             sieve.offset += 1;
 
@@ -154,6 +162,23 @@ impl<'a> SimdSieve<'a> {
 
         global_popcnt
     }
+}
+
+/// Fail-safe density returned when the sieve/`MultiSieve` cannot be built for an
+/// estimate.
+///
+/// A construction failure (an oversized or otherwise invalid pattern set) must
+/// NOT be reported as zero density: `estimate_match_count` is a prefilter, and a
+/// zero would let a caller decide to SKIP the real scan, silently losing recall
+/// (Law-10). Instead we surface the error loudly and return the maximum possible
+/// density (one candidate per scanned byte) so the caller always errs toward
+/// scanning. Loud + recall-preserving, never a silent zero.
+fn fail_safe_density(haystack: &[u8], error: &crate::error::SimdSieveError) -> u64 {
+    eprintln!(
+        "simdsieve::estimate_match_count: sieve construction failed ({error}); \
+         returning max density to force a full scan (fail-safe, not zero)."
+    );
+    haystack.len() as u64
 }
 
 #[cfg(test)]
@@ -240,6 +265,33 @@ mod sieve_unit_tests {
             count <= haystack.len() as u64,
             "estimate should not exceed haystack length"
         );
+    }
+
+    #[test]
+    fn estimate_match_count_fails_safe_on_invalid_pattern_set() {
+        // Regression for sieve/mod.rs:102 (Law-10): a pattern set that fails to
+        // build a sieve (here an empty pattern makes SimdSieve::new return
+        // EmptyPattern) must NOT be reported as zero density - a zero could let a
+        // prefilter skip the real scan and lose recall. It must return the
+        // fail-safe MAX density instead.
+        let haystack = vec![b'x'; 100];
+        let patterns: [&[u8]; 2] = [b"x", b""];
+        let count = SimdSieve::estimate_match_count(&haystack, &patterns, false);
+        assert_eq!(
+            count, 100,
+            "invalid pattern set must return max density (haystack len), not 0"
+        );
+    }
+
+    #[test]
+    fn estimate_match_count_fails_safe_on_invalid_many_pattern_set() {
+        // Same fail-safe contract on the MultiSieve delegation path (> MAX_PATTERNS).
+        let haystack = vec![b'x'; 100];
+        let mut patterns: Vec<&[u8]> =
+            (0..crate::MAX_PATTERNS + 1).map(|_| b"ab".as_slice()).collect();
+        patterns.push(b""); // empty pattern -> construction error
+        let count = SimdSieve::estimate_match_count(&haystack, &patterns, false);
+        assert_eq!(count, 100, "invalid many-pattern set must return max density, not 0");
     }
 
     #[test]

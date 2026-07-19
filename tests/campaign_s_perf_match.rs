@@ -1,4 +1,4 @@
-//! S-perf-match campaign catalog — +40 simdsieve scalar/SIMD smoke cases.
+//! S-perf-match campaign catalog: +40 simdsieve scalar/SIMD smoke cases.
 
 #![allow(clippy::unwrap_used)]
 

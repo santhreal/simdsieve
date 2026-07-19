@@ -55,8 +55,11 @@ impl Iterator for SimdSieve<'_> {
             }
         }
 
-        // Byte-by-byte tail scan for remaining positions.
-        while self.offset <= self.haystack.len() {
+        // Byte-by-byte tail scan for remaining positions. The bound is `<` (not
+        // `<=`): at offset == haystack.len() the remaining slice is empty, so
+        // `remaining.len() >= vp.len()` is always false for the non-empty
+        // patterns this sieve accepts - that final iteration can never match.
+        while self.offset < self.haystack.len() {
             let current_idx = self.offset;
             let remaining = &self.haystack[self.offset..];
             self.offset += 1;

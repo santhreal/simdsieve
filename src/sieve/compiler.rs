@@ -36,19 +36,26 @@ impl<'a> SimdSieve<'a> {
 
         let mut max_len = 0;
         let mut verify_patterns = [&b""[..]; 16];
+        let mut count = 0;
 
         for (i, &p) in patterns.iter().enumerate() {
             if p.is_empty() {
                 return Err(SimdSieveError::EmptyPattern { index: i });
             }
+            // Deduplicate: a repeated pattern finds exactly the same positions,
+            // so verifying it a second time is pure redundant work (extra vector
+            // loads + comparisons per candidate). count is bounded by 16, so the
+            // linear membership check is negligible.
+            if verify_patterns[..count].contains(&p) {
+                continue;
+            }
             let evaluate_len = if p.len() > 4 { 4 } else { p.len() };
             if evaluate_len > max_len {
                 max_len = evaluate_len;
             }
-            verify_patterns[i] = p;
+            verify_patterns[count] = p;
+            count += 1;
         }
-
-        let count = patterns.len();
         let filter_patterns = &verify_patterns[..count];
         let verifier = if case_insensitive {
             verify_case_insensitive

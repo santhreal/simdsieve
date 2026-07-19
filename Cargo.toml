@@ -1,13 +1,13 @@
 [package]
 name = "simdsieve"
-version = "0.1.1"
+version = "0.1.3"
 edition = "2024"
 rust-version = "1.88"
 description = "SIMD-accelerated byte pattern pre-filtering with AVX-512, AVX2, NEON, and scalar fallback"
 license = "MIT"
 authors = ["Corum Collective LLC <contact@santh.io>"]
-repository = "https://github.com/santhsecurity/Santh"
-homepage = "https://github.com/santhsecurity/Santh"
+repository = "https://github.com/santhreal/simdsieve"
+homepage = "https://santh.dev"
 documentation = "https://docs.rs/simdsieve"
 readme = "README.md"
 keywords = ["simd", "avx2", "avx512", "neon", "pattern-matching"]
@@ -28,7 +28,7 @@ name = "throughput"
 harness = false
 
 [[bench]]
-name = "legendary_bench"
+name = "depth_bench"
 harness = false
 
 [[test]]
@@ -56,16 +56,16 @@ name = "unit_kimi_audit"
 path = "tests/unit/kimi_audit.rs"
 
 [[test]]
-name = "unit_legendary"
-path = "tests/unit/legendary.rs"
+name = "unit_depth"
+path = "tests/unit/depth.rs"
 
 [[test]]
-name = "unit_legendary_2"
-path = "tests/unit/legendary_2.rs"
+name = "unit_depth_2"
+path = "tests/unit/depth_2.rs"
 
 [[test]]
-name = "unit_legendary_jules"
-path = "tests/unit/legendary_jules.rs"
+name = "unit_depth_jules"
+path = "tests/unit/depth_jules.rs"
 
 [[test]]
 name = "unit_mass_simd_samples"
@@ -96,24 +96,24 @@ name = "unit_test_impossible_conditions"
 path = "tests/unit/test_impossible_conditions.rs"
 
 [[test]]
-name = "unit_test_legendary_concurrency"
-path = "tests/unit/test_legendary_concurrency.rs"
+name = "unit_test_depth_concurrency"
+path = "tests/unit/test_depth_concurrency.rs"
 
 [[test]]
-name = "unit_test_legendary_fault"
-path = "tests/unit/test_legendary_fault.rs"
+name = "unit_test_depth_fault"
+path = "tests/unit/test_depth_fault.rs"
 
 [[test]]
-name = "unit_test_legendary_gap"
-path = "tests/unit/test_legendary_gap.rs"
+name = "unit_test_depth_gap"
+path = "tests/unit/test_depth_gap.rs"
 
 [[test]]
-name = "unit_test_legendary_overflow"
-path = "tests/unit/test_legendary_overflow.rs"
+name = "unit_test_depth_overflow"
+path = "tests/unit/test_depth_overflow.rs"
 
 [[test]]
-name = "unit_test_legendary_unit"
-path = "tests/unit/test_legendary_unit.rs"
+name = "unit_test_depth_unit"
+path = "tests/unit/test_depth_unit.rs"
 
 [[test]]
 name = "adversarial_adversarial_exhaustive"
@@ -140,8 +140,8 @@ name = "adversarial"
 path = "tests/adversarial/mod.rs"
 
 [[test]]
-name = "adversarial_test_legendary_adversarial"
-path = "tests/adversarial/test_legendary_adversarial.rs"
+name = "adversarial_test_depth_adversarial"
+path = "tests/adversarial/test_depth_adversarial.rs"
 
 [[test]]
 name = "integration"
@@ -152,16 +152,16 @@ name = "integration_multi_integration"
 path = "tests/integration/multi_integration.rs"
 
 [[test]]
-name = "property_legendary_proptest"
-path = "tests/property/legendary_proptest.rs"
+name = "property_depth_proptest"
+path = "tests/property/depth_proptest.rs"
 
 [[test]]
 name = "property"
 path = "tests/property/mod.rs"
 
 [[test]]
-name = "property_test_legendary_property"
-path = "tests/property/test_legendary_property.rs"
+name = "property_test_depth_property"
+path = "tests/property/test_depth_property.rs"
 
 [[test]]
 name = "campaign_s_perf_match"

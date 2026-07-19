@@ -26,7 +26,7 @@ proptest! {
             // If `patterns` is empty, `patterns.chunks(16)` yields zero chunks, so it loop 0 times,
             // and returns Ok(Self { sieves: vec![] }). This is an engine finding!
             // But for this proptest, I will assert what it actually does to pass the property test.
-            // Wait, "If a test fails, the ENGINE is wrong — file it as a finding".
+            // Wait, "If a test fails, the ENGINE is wrong (file it as a finding").
             // I should put this in gap tests!
             // For the property test, let's just test non-empty patterns.
             prop_assume!(!pattern_refs.is_empty());

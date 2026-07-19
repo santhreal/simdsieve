@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-06-27
+
+### Fixed
+
+- **ARM/NEON stable build (E0658)**: the NEON `neon_movemask` helper carried
+  `#[inline(always)]` alongside `#[target_feature(enable = "neon")]`, a
+  combination that requires the unstable `target_feature_11` feature and so
+  failed to compile on stable rustc for `aarch64` targets (E0658). The
+  attribute is now plain `#[inline]`, which still hints the optimizer and
+  builds on stable. Supersedes the broken `0.1.1` publish, which only ever
+  compiled on x86_64.
+
 ## [0.1.0] - 2024-03-30
 
 ### Added

@@ -5,7 +5,7 @@
     clippy::panic,
     clippy::manual_let_else
 )]
-//! Legendary test suite for simdsieve by Jules.
+//! Oneshot test suite for simdsieve by Jules.
 
 use proptest::prelude::*;
 use simdsieve::{SimdSieve, SimdSieveError};

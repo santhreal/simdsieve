@@ -155,7 +155,7 @@ fn error_empty_pattern_set() {
 
 #[test]
 fn error_pattern_limit_exceeded() {
-    // Limit is 16 patterns — 17 should trigger the error.
+    // Limit is 16 patterns: 17 should trigger the error.
     let patterns: Vec<Vec<u8>> = (0..17).map(|i| vec![b'a' + (i % 26)]).collect();
     let pattern_refs: Vec<&[u8]> = patterns.iter().map(std::vec::Vec::as_slice).collect();
     let result = SimdSieve::new(b"haystack", &pattern_refs);

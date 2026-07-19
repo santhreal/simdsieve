@@ -1,4 +1,4 @@
-# simdsieve — Technical Spec
+# simdsieve: Technical Spec
 
 ## Overview
 

@@ -299,12 +299,20 @@ impl Avx2Filter {
             // Compare each loaded vector position against all pattern prefixes.
             // The mask starts as all 1s and is ANDed with each byte comparison.
             // Only positions matching all prefix bytes survive.
+            //
+            // NOTE (perf, measured): folding the per-prefix-byte comparisons in
+            // the VECTOR domain (`vpand`/`vpor`, one `vpmovmskb` per half) was
+            // tried and is BIT-IDENTICAL but ~16% SLOWER on modern x86
+            // (9.4 → 7.9 GB/s, 8 patterns / 4-byte prefixes). `vpmovmskb` is not
+            // the bottleneck here; the independent per-byte movemasks pipeline
+            // better than the serial `vpand`/`vpor` dependency chains the fold
+            // introduces. Keep the per-byte-extract form.
             for p_idx in 0..self.pattern_count {
                 let p = &self.patterns[p_idx];
                 let mut pattern_mask_a: u32 = !0;
                 let mut pattern_mask_b: u32 = !0;
 
-                // Use precomputed broadcast vectors — avoids _mm256_set1_epi8
+                // Use precomputed broadcast vectors, avoids _mm256_set1_epi8
                 // per pattern per block. 32 broadcasts eliminated per call.
                 if p.len > 0 {
                     let cmp_a = _mm256_cmpeq_epi8(v0_a, p.bcast[0]);

@@ -1,4 +1,4 @@
-//! S-proptest-03 — simdsieve mass proptest: match index invariants, no panic on arbitrary bytes.
+//! S-proptest-03 (simdsieve mass proptest: match index invariants, no panic on arbitrary bytes).
 
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
@@ -115,8 +115,15 @@ simd_cases! {
     p10_count_matches_collect_len => |haystack, pattern| {
         let pat = pattern.as_slice();
         if let Ok(sieve) = SimdSieve::new(&haystack, &[pat]) {
-            let collected: Vec<_> = sieve.collect();
-            prop_assert_eq!(collected.len(), collected.len());
+            let collected: Vec<usize> = sieve.collect();
+            // Reference: every start position (overlapping allowed) where the
+            // full pattern occurs. The sieve verifies the full pattern at each
+            // candidate, so its collected positions must exactly equal this
+            // brute-force set - not merely equal themselves (the old tautology).
+            let expected: Vec<usize> = (0..=haystack.len().saturating_sub(pat.len()))
+                .filter(|&i| haystack[i..].starts_with(pat))
+                .collect();
+            prop_assert_eq!(collected, expected);
         }
     },
 }

@@ -314,7 +314,7 @@ proptest! {
         }
     }
 
-    /// Property 18: cross-backend parity — SimdSieve output equals scalar reference.
+    /// Property 18: cross-backend parity: SimdSieve output equals scalar reference.
     #[test]
     fn cross_backend_parity(
         haystack in proptest::collection::vec(0u8..=255, 0..=512),

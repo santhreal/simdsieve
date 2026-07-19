@@ -1,4 +1,4 @@
-# simdsieve-fuzz — Technical Spec
+# simdsieve-fuzz: Technical Spec
 
 ## Overview
 

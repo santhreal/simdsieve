@@ -19,7 +19,7 @@
 use simdsieve::{SimdSieve, SimdSieveError};
 
 // =============================================================================
-// Reference Implementation — Brute-force Linear Scan
+// Reference Implementation: Brute-force Linear Scan
 // =============================================================================
 
 /// Returns every offset where at least one pattern matches exactly.
@@ -221,7 +221,7 @@ fn overlapping_prefix_matches() {
 }
 
 // =============================================================================
-// Test Group 2: SIMD Backend Correctness — Input Sizes
+// Test Group 2: SIMD Backend Correctness. Input Sizes
 // =============================================================================
 
 #[test]
@@ -328,37 +328,23 @@ fn input_size_1mb() {
 // Test Group 3: Input Alignment
 // =============================================================================
 
-fn create_aligned_haystack(size: usize, align: usize) -> Vec<u8> {
-    // Allocate extra space and find aligned position within it
-    let v = vec![0u8; size + align * 4];
-    let ptr = v.as_ptr() as usize;
-    // Find next aligned address
-    let aligned_ptr = if ptr.is_multiple_of(align) {
-        ptr
-    } else {
-        ptr + (align - ptr % align)
-    };
-    let offset = aligned_ptr - ptr;
-    // Create a new vec with the aligned slice
-    let aligned_slice = &v[offset..offset + size];
-    let result = aligned_slice.to_vec();
-    // Verify alignment
-    assert_eq!(
-        result.as_ptr() as usize % align,
-        0,
-        "alignment failed: ptr={:p}, align={}, ptr%align={}",
-        result.as_ptr(),
-        align,
-        result.as_ptr() as usize % align
-    );
-}
-
 #[test]
 fn alignment_32_bytes_aligned() {
-    let mut haystack = create_aligned_haystack(256, 32);
-    haystack.fill(b'x');
-    haystack[100..103].copy_from_slice(b"ABC");
-    assert_matches_reference(&haystack, &[b"ABC"], false, "alignment_32_bytes_aligned");
+    // Verify the scanner is correct when the haystack begins on a 32-byte (AVX2)
+    // alignment boundary. A plain `Vec<u8>` cannot guarantee alignment greater
+    // than 1, so back the buffer with a `repr(align(32))` allocation, which `Box`
+    // honors, giving a genuinely 32-byte-aligned start.
+    #[repr(align(32))]
+    struct Aligned32([u8; 256]);
+
+    let mut backing = Box::new(Aligned32([b'x'; 256]));
+    assert_eq!(
+        backing.0.as_ptr() as usize % 32,
+        0,
+        "backing buffer must be 32-byte aligned"
+    );
+    backing.0[100..103].copy_from_slice(b"ABC");
+    assert_matches_reference(&backing.0, &[b"ABC"], false, "alignment_32_bytes_aligned");
 }
 
 #[test]

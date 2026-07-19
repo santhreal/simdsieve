@@ -52,8 +52,10 @@ fn test_multisieve_empty_patterns_error() {
 
 #[test]
 fn test_oom_survival_simdsieve() {
-    // SimdSieve::new does not heap-allocate, so it should succeed even on
-    // large inputs when called directly.
+    // SimdSieve::new allocates only a small FIXED-SIZE boxed backend filter
+    // (HardwareTier::Scalar(Box::new(..)) etc. in compiler.rs), never anything
+    // proportional to the haystack (which it borrows), so it succeeds even on
+    // very large inputs when called directly.
     let haystack = vec![b'x'; 10_000_000];
     let result = SimdSieve::new(&haystack, &[b"xyz"]);
     assert!(

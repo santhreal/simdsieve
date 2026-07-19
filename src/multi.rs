@@ -76,9 +76,24 @@ impl<'a> MultiSieve<'a> {
             patterns.len() <= 1_000_000,
             "patterns list is extremely large, potential for excessive memory allocation"
         );
-        let mut sieves = Vec::with_capacity(patterns.len().div_ceil(16));
 
-        for chunk in patterns.chunks(16) {
+        // Deduplicate patterns before grouping into 16-element chunks: identical
+        // patterns would otherwise inflate the number of SimdSieve structures
+        // (extra heap allocations) and add redundant work to the k-way position
+        // merge. First-occurrence order is preserved so chunk grouping stays
+        // deterministic. (Byte-exact dedup only - case-insensitive folding of
+        // near-duplicates is intentionally left to per-pattern verification.)
+        let mut seen = std::collections::HashSet::with_capacity(patterns.len());
+        let mut unique: Vec<&'a [u8]> = Vec::with_capacity(patterns.len());
+        for &p in patterns {
+            if seen.insert(p) {
+                unique.push(p);
+            }
+        }
+
+        let mut sieves = Vec::with_capacity(unique.len().div_ceil(16));
+
+        for chunk in unique.chunks(16) {
             let sieve = if case_insensitive {
                 SimdSieve::new_case_insensitive(haystack, chunk)?
             } else {
