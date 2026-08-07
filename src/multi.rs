@@ -37,6 +37,7 @@ use std::collections::BinaryHeap;
 ///
 /// assert_eq!(matches, vec![0, 6, 11, 17]);
 /// ```
+#[derive(Debug)]
 pub struct MultiSieve<'a> {
     sieves: Vec<SimdSieve<'a>>,
 }
@@ -70,7 +71,11 @@ impl<'a> MultiSieve<'a> {
         if patterns.is_empty() {
             return Err(crate::error::SimdSieveError::EmptyPatternSet);
         }
-
+        for (i, &p) in patterns.iter().enumerate() {
+            if p.is_empty() {
+                return Err(crate::error::SimdSieveError::EmptyPattern { index: i });
+            }
+        }
         #[cfg(debug_assertions)]
         debug_assert!(
             patterns.len() <= 1_000_000,
@@ -147,7 +152,11 @@ impl CompiledMultiSieve {
         if patterns.is_empty() {
             return Err(crate::error::SimdSieveError::EmptyPatternSet);
         }
-
+        for (i, &p) in patterns.iter().enumerate() {
+            if p.is_empty() {
+                return Err(crate::error::SimdSieveError::EmptyPattern { index: i });
+            }
+        }
         let mut seen = std::collections::HashSet::with_capacity(patterns.len());
         let mut unique: Vec<&[u8]> = Vec::with_capacity(patterns.len());
         for &p in patterns {
@@ -496,5 +505,25 @@ mod tests {
         let compiled_matches: Vec<usize> = compiled_multi.candidates(haystack).collect();
 
         assert_eq!(compiled_matches, direct_matches);
+    }
+
+    #[test]
+    fn test_multi_sieve_empty_pattern_preserves_exact_index() {
+        use crate::SimdSieveError;
+
+        // 20 patterns with an empty pattern at index 18
+        let mut patterns: Vec<&[u8]> = (0..20).map(|i| match i {
+            0..=15 => b"abc" as &[u8],
+            16 => b"def",
+            17 => b"ghi",
+            18 => b"",
+            _ => b"jkl",
+        }).collect();
+
+        let err = MultiSieve::new(b"haystack", &patterns).unwrap_err();
+        assert_eq!(err, SimdSieveError::EmptyPattern { index: 18 });
+
+        let err_compiled = CompiledMultiSieve::new(&patterns).unwrap_err();
+        assert_eq!(err_compiled, SimdSieveError::EmptyPattern { index: 18 });
     }
 }

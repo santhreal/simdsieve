@@ -1,6 +1,6 @@
 [package]
 name = "simdsieve"
-version = "0.1.4"
+version = "0.1.5"
 edition = "2024"
 rust-version = "1.88"
 description = "SIMD-accelerated byte pattern pre-filtering with AVX-512, AVX2, NEON, and scalar fallback"

@@ -14,7 +14,7 @@ pub(crate) mod compiler;
 pub(crate) mod dispatch;
 
 /// A streaming hardware-accelerated iterator that yields byte offsets
-/// where the haystack matches one of the supplied patterns.
+#[derive(Debug)]
 pub struct SimdSieve<'a> {
     /// Reference to the haystack being searched.
     pub(crate) haystack: &'a [u8],

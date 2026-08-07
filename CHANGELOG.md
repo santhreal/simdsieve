@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## [0.1.5] - 2026-08-07
+
+### Fixed
+
+- **Upfront pattern validation in `MultiSieve` and `CompiledMultiSieve`**: Added pre-chunking/pre-dedup pattern validation loop to ensure empty patterns (`b""`) in multi-pattern sets immediately fail-closed with the exact input index in `SimdSieveError::EmptyPattern { index }`.
+- **`Debug` trait implementations**: Derived `Debug` for `SimdSieve` and `MultiSieve` structs to enable debug formatting and result unwrapping in tests.
 ## [0.1.4] - 2026-08-07
 
 ### Changed
