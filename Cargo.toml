@@ -1,11 +1,11 @@
 [package]
 name = "simdsieve"
-version = "0.1.3"
+version = "0.1.4"
 edition = "2024"
 rust-version = "1.88"
 description = "SIMD-accelerated byte pattern pre-filtering with AVX-512, AVX2, NEON, and scalar fallback"
 license = "MIT"
-authors = ["Corum Collective LLC <contact@santh.io>"]
+authors = ["Santh <64453045+santhreal@users.noreply.github.com>"]
 repository = "https://github.com/santhreal/simdsieve"
 homepage = "https://santh.dev"
 documentation = "https://docs.rs/simdsieve"
@@ -13,6 +13,9 @@ readme = "README.md"
 keywords = ["simd", "avx2", "avx512", "neon", "pattern-matching"]
 categories = ["algorithms", "text-processing"]
 include = ["src/**", "benches/**", "tests/**", "fuzz/**", "README.md", "CHANGELOG.md", "LICENSE", "Cargo.toml"]
+
+[package.metadata.santh]
+status = "beta"
 
 [dependencies]
 

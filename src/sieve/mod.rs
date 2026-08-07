@@ -5,7 +5,9 @@
 //! `Iterator<Item = usize>` interface, yielding byte offsets into the
 //! haystack where pattern matches begin.
 
-use crate::sieve::dispatch::HardwareTier;
+use crate::sieve::dispatch::SieveTier;
+
+pub use compiler::CompiledSieve;
 
 pub(crate) mod collector;
 pub(crate) mod compiler;
@@ -26,7 +28,7 @@ pub struct SimdSieve<'a> {
     /// Maximum prefix length across all patterns (1–4).
     pub(crate) max_len: usize,
     /// Selected hardware backend.
-    pub(crate) tier: HardwareTier,
+    pub(crate) tier: SieveTier<'a>,
     /// Bitmask of candidate positions in current half-block.
     /// Bit `i` set means position `mask_base_offset + i` is a candidate.
     pub(crate) current_mask: u64,
@@ -194,7 +196,7 @@ mod tests {
         haystack[1023] = b'Z';
 
         let sieve = SimdSieve::new_case_insensitive(&haystack, &[b"Z"]).unwrap();
-        let tier = match &sieve.tier {
+        let tier = match &*sieve.tier {
             #[cfg(target_arch = "x86_64")]
             HardwareTier::Avx512(_) => "avx512",
             #[cfg(target_arch = "x86_64")]

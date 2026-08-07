@@ -5,7 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.1.4] - 2026-08-07
+
+### Changed
+- Yanked crates.io `0.1.1` (broken aarch64 `inline(always)` + `target_feature` E0658). Main-thread release hygiene.
+### Added
+
+- **`CompiledSieve` API**: Added public compile-once pattern sieve for scanning multiple haystacks with zero heap allocation and zero filter recompilation per scan ([#11](https://github.com/santhreal/simdsieve/issues/11)).
+- **`CompiledMultiSieve` API**: Added public compile-once multi-pass pattern sieve for arbitrary pattern sets (>16 entries) with zero filter recompilation across haystacks.
+
 
 ## [0.1.2] - 2026-06-27
 
@@ -60,5 +68,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bounds-checked block processing
 - Unaligned loads used throughout for memory safety
 
-[Unreleased]: https://github.com/santhsecurity/simdsieve/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/santhsecurity/simdsieve/releases/tag/v0.1.0
+[Unreleased]: https://github.com/santhreal/simdsieve/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/santhreal/simdsieve/releases/tag/v0.1.2
+[0.1.0]: https://github.com/santhreal/simdsieve/releases/tag/v0.1.0

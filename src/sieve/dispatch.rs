@@ -48,6 +48,39 @@ impl HardwareTier {
         }
     }
 }
+impl core::fmt::Debug for HardwareTier {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        let name = match self {
+            #[cfg(target_arch = "x86_64")]
+            HardwareTier::Avx512(_) => "Avx512",
+            #[cfg(target_arch = "x86_64")]
+            HardwareTier::Avx2(_) => "Avx2",
+            #[cfg(target_arch = "aarch64")]
+            HardwareTier::Neon(_) => "Neon",
+            HardwareTier::Scalar(_) => "Scalar",
+        };
+        f.debug_tuple("HardwareTier").field(&name).finish()
+    }
+}
+
+/// Tier reference/ownership wrapper for [`SimdSieve`].
+#[derive(Debug)]
+pub(crate) enum SieveTier<'a> {
+    Owned(HardwareTier),
+    Borrowed(&'a HardwareTier),
+}
+
+impl<'a> core::ops::Deref for SieveTier<'a> {
+    type Target = HardwareTier;
+
+    #[inline]
+    fn deref(&self) -> &HardwareTier {
+        match self {
+            SieveTier::Owned(tier) => tier,
+            SieveTier::Borrowed(tier) => tier,
+        }
+    }
+}
 
 /// Macro for the dual-pump main loop shared by AVX-512, AVX2, and NEON.
 macro_rules! dual_pump_main {
@@ -99,7 +132,7 @@ impl SimdSieve<'_> {
     pub(crate) fn fetch_next_chunk(&mut self) -> bool {
         self.prefetch_ahead(512);
 
-        match &self.tier {
+        match &*self.tier {
             #[cfg(target_arch = "x86_64")]
             HardwareTier::Avx512(filter) => {
                 dual_pump_main!(

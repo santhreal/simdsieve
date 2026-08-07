@@ -88,5 +88,5 @@ mod neon;
 pub(crate) const MAX_PATTERNS: usize = 16;
 
 pub use error::{Result, SimdSieveError};
-pub use multi::MultiSieve;
-pub use sieve::SimdSieve;
+pub use multi::{CompiledMultiSieve, MultiSieve};
+pub use sieve::{CompiledSieve, SimdSieve};

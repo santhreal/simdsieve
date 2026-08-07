@@ -4,7 +4,7 @@
 //! [`SimdSieve`] per group, then merges the sorted candidate
 //! streams into a single sorted, deduplicated iterator.
 
-use crate::{Result, SimdSieve};
+use crate::{CompiledSieve, Result, SimdSieve};
 use core::cmp::{Ordering, Reverse};
 use core::iter::FusedIterator;
 use std::collections::BinaryHeap;
@@ -111,6 +111,80 @@ impl<'a> MultiSieve<'a> {
     /// once.
     pub fn candidates(self) -> impl Iterator<Item = usize> + 'a {
         MultiCandidates::new(self.sieves)
+    }
+}
+/// A compiled multi-pass sieve for arbitrary pattern sets (>16 entries).
+///
+/// Patterns are partitioned into 16-element chunks, each compiled into a
+/// [`CompiledSieve`]. Calling [`CompiledMultiSieve::scan`] or
+/// [`CompiledMultiSieve::candidates`] rebinds a haystack across all chunks
+/// with zero filter recompilation.
+#[derive(Debug)]
+pub struct CompiledMultiSieve {
+    sieves: Vec<CompiledSieve>,
+}
+
+impl CompiledMultiSieve {
+    /// Compiles an exact-match multi-pass sieve for any number of patterns.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SimdSieveError::EmptyPatternSet`] if `patterns` is empty.
+    pub fn new(patterns: &[&[u8]]) -> Result<Self> {
+        Self::build(patterns, false)
+    }
+
+    /// Compiles a case-insensitive multi-pass sieve for any number of patterns.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SimdSieveError::EmptyPatternSet`] if `patterns` is empty.
+    pub fn new_case_insensitive(patterns: &[&[u8]]) -> Result<Self> {
+        Self::build(patterns, true)
+    }
+
+    fn build(patterns: &[&[u8]], case_insensitive: bool) -> Result<Self> {
+        if patterns.is_empty() {
+            return Err(crate::error::SimdSieveError::EmptyPatternSet);
+        }
+
+        let mut seen = std::collections::HashSet::with_capacity(patterns.len());
+        let mut unique: Vec<&[u8]> = Vec::with_capacity(patterns.len());
+        for &p in patterns {
+            if seen.insert(p) {
+                unique.push(p);
+            }
+        }
+
+        let mut sieves = Vec::with_capacity(unique.len().div_ceil(16));
+        for chunk in unique.chunks(16) {
+            let compiled = if case_insensitive {
+                CompiledSieve::new_case_insensitive(chunk)?
+            } else {
+                CompiledSieve::new(chunk)?
+            };
+            sieves.push(compiled);
+        }
+
+        Ok(Self { sieves })
+    }
+
+    /// Scans `haystack` using all compiled sieve groups, returning a [`MultiSieve`].
+    pub fn scan<'a>(&'a self, haystack: &'a [u8]) -> MultiSieve<'a> {
+        MultiSieve {
+            sieves: self.sieves.iter().map(|cs| cs.scan(haystack)).collect(),
+        }
+    }
+
+    /// Scans `haystack` and streams deduplicated, sorted candidate match offsets.
+    pub fn candidates<'a>(&'a self, haystack: &'a [u8]) -> impl Iterator<Item = usize> + 'a {
+        self.scan(haystack).candidates()
+    }
+
+    /// Returns the total number of compiled sieve chunks (>16 patterns use multiple chunks).
+    #[must_use]
+    pub fn chunk_count(&self) -> usize {
+        self.sieves.len()
     }
 }
 
@@ -259,7 +333,7 @@ impl FusedIterator for MultiCandidates<'_> {}
 
 #[cfg(test)]
 mod tests {
-    use super::MultiSieve;
+    use super::{CompiledMultiSieve, MultiSieve};
 
     fn naive_matches(haystack: &[u8], patterns: &[&[u8]]) -> Vec<usize> {
         let mut positions = Vec::new();
@@ -388,5 +462,39 @@ mod tests {
             .collect();
 
         assert_eq!(actual, vec![0, 11, 17]);
+    }
+    #[test]
+    fn test_compiled_multi_sieve_large_pattern_set_parity() {
+        let haystack = b"p00 p05 p10 p15 p20 p25 end";
+        let pattern_bufs: Vec<Vec<u8>> = (0..25).map(|i| format!("p{i:02}").into_bytes()).collect();
+        let pattern_refs: Vec<&[u8]> = pattern_bufs.iter().map(|v| v.as_slice()).collect();
+
+        let compiled_multi = CompiledMultiSieve::new(&pattern_refs).unwrap();
+        assert_eq!(compiled_multi.chunk_count(), 2);
+
+        let direct_matches: Vec<usize> = MultiSieve::new(haystack, &pattern_refs)
+            .unwrap()
+            .candidates()
+            .collect();
+        let compiled_matches: Vec<usize> = compiled_multi.candidates(haystack).collect();
+
+        assert_eq!(compiled_matches, direct_matches);
+    }
+
+    #[test]
+    fn test_compiled_multi_sieve_case_insensitive() {
+        let haystack = b"P00 P05 P10 P15 P20 P25 END";
+        let pattern_bufs: Vec<Vec<u8>> = (0..20).map(|i| format!("p{i:02}").into_bytes()).collect();
+        let pattern_refs: Vec<&[u8]> = pattern_bufs.iter().map(|v| v.as_slice()).collect();
+
+        let compiled_multi = CompiledMultiSieve::new_case_insensitive(&pattern_refs).unwrap();
+
+        let direct_matches: Vec<usize> = MultiSieve::new_case_insensitive(haystack, &pattern_refs)
+            .unwrap()
+            .candidates()
+            .collect();
+        let compiled_matches: Vec<usize> = compiled_multi.candidates(haystack).collect();
+
+        assert_eq!(compiled_matches, direct_matches);
     }
 }

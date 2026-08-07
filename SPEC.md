@@ -20,9 +20,18 @@ The crate is organized into the following public modules:
 
 ## Public API Summary
 
-Key entry points are exported from `src/lib.rs` via `pub mod` and `pub use` re-exports.
-Consult the module-level documentation in each source file for function signatures and usage examples.
+Key entry points are exported from `src/lib.rs`:
 
+- [`SimdSieve`]: Streaming single-pass SIMD candidate iterator for up to 16 patterns.
+- [`CompiledSieve`]: Compile-once SIMD filter for up to 16 patterns; zero heap allocation on haystack rebinds (`.scan(haystack)`).
+- [`MultiSieve`]: Streaming multi-pass candidate iterator with $k$-way merge for pattern sets larger than 16.
+- [`CompiledMultiSieve`]: Compile-once multi-chunk SIMD filter for $>16$ patterns with zero-rebuild haystack rebinding.
+- [`SimdSieveError`]: Enumerates pattern validation errors (empty set, empty pattern, limit exceeded).
+
+## Construction Costs & Design Caps
+
+- **16-Pattern Cap**: SIMD filter backends (AVX-512, AVX2, NEON, Scalar) pack up to 16 pattern prefixes into SIMD registers. Pattern sets exceeding 16 are automatically partitioned into 16-element chunks by `MultiSieve` / `CompiledMultiSieve`.
+- **Filter Compilation Cost**: `SimdSieve::new` executes CPU feature detection (`std::is_x86_feature_detected!`), pattern deduplication, and heap allocation of boxed backend filters (`Box<Filter>`). `CompiledSieve::new` absorbs this cost up front; subsequent `.scan(haystack)` calls rebind haystack pointers on stack memory without heap allocation.
 ## Error Handling
 
 - `SimdSieveError`

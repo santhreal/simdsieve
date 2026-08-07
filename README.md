@@ -4,7 +4,7 @@
 [![Docs.rs](https://docs.rs/simdsieve/badge.svg)](https://docs.rs/simdsieve)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Part of [Santh](https://santh.dev) - open source Rust security and infrastructure tooling. Follow [@SanthProject](https://x.com/SanthProject) on X.
+Part of [Santh](https://santh.dev) - open source Rust security and infrastructure tooling.
 
 A SIMD-accelerated multi-pattern pre-filtering engine with zero-allocation
 streaming iteration. Scans byte haystacks for up to 16 patterns simultaneously
@@ -71,7 +71,7 @@ Basic exact matching:
 use simdsieve::SimdSieve;
 
 let haystack = b"The quick brown fox jumps over the lazy dog";
-let patterns = &[b"fox"[..], b"dog"[..]];
+let patterns: &[&[u8]] = &[b"fox", b"dog"];
 
 let sieve = SimdSieve::new(haystack, patterns).unwrap();
 let matches: Vec<usize> = sieve.collect();
@@ -85,7 +85,7 @@ Case-insensitive matching:
 use simdsieve::SimdSieve;
 
 let haystack = b"Hello World HELLO";
-let patterns = &[b"hello"[..]];
+let patterns: &[&[u8]] = &[b"hello"];
 
 let sieve = SimdSieve::new_case_insensitive(haystack, patterns).unwrap();
 let matches: Vec<usize> = sieve.collect();
@@ -99,11 +99,55 @@ Density estimation (without full verification):
 use simdsieve::SimdSieve;
 
 let haystack = b"aaaaaa";
-let patterns = &[b"a"[..]];
+let patterns: &[&[u8]] = &[b"a"];
 
 let count = SimdSieve::estimate_match_count(haystack, patterns, false);
 assert_eq!(count, 6); // One prefix hit at each position
 ```
+### Compile-Once Haystack Scanning (`CompiledSieve`)
+
+When scanning multiple haystacks with the same set of patterns (e.g. in a hot scanner loop, packet inspector, or log processor), calling `SimdSieve::new(haystack, patterns)` on every haystack incurs pattern validation, deduplication, runtime feature detection, and boxed SIMD filter allocation on each call.
+
+Use [`CompiledSieve`] to compile the SIMD filter once up front and rebind haystacks with zero memory allocation and zero filter recompilation:
+
+```rust
+use simdsieve::CompiledSieve;
+
+// Compile pattern set once (up to 16 patterns)
+let compiled = CompiledSieve::new(&[b"GET", b"/admin", b"POST"]).unwrap();
+
+let haystacks = [
+    b"GET /admin HTTP/1.1\r\n".as_slice(),
+    b"POST /api/v1 HTTP/1.1\r\n".as_slice(),
+    b"GET /index.html HTTP/1.1\r\n".as_slice(),
+];
+
+// Rebind haystack per scan with zero heap allocation or filter rebuild
+for haystack in haystacks {
+    let matches: Vec<usize> = compiled.scan(haystack).collect();
+    println!("Matches: {matches:?}");
+}
+```
+
+For pattern sets larger than 16, use [`CompiledMultiSieve`]:
+
+```rust
+use simdsieve::CompiledMultiSieve;
+
+let patterns: Vec<Vec<u8>> = (0..32).map(|i| format!("pattern_{i}").into_bytes()).collect();
+let pattern_refs: Vec<&[u8]> = patterns.iter().map(Vec::as_slice).collect();
+
+let compiled_multi = CompiledMultiSieve::new(&pattern_refs).unwrap();
+
+for haystack in haystacks {
+    let matches: Vec<usize> = compiled_multi.candidates(haystack).collect();
+}
+```
+
+### Construction Cost & 16-Pattern Cap
+
+- **16-Pattern Cap per Filter**: Single SIMD filters (`SimdSieve` / `CompiledSieve`) accept up to 16 patterns simultaneously, matching hardware SIMD register layouts. Pattern sets exceeding 16 automatically partition into 16-element chunks via `MultiSieve` or `CompiledMultiSieve` with $k$-way merge iteration.
+- **Construction Overhead**: `SimdSieve::new` executes CPU feature detection (`std::is_x86_feature_detected!`), pattern deduplication, and heap allocation of aligned backend filters (`Box<Filter>`). `CompiledSieve::new` absorbs this cost once; subsequent `.scan(haystack)` calls rebind haystack pointers on stack memory without heap allocations.
 
 ### Iterator Behavior
 
